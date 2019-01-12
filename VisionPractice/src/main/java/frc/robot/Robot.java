@@ -105,7 +105,21 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    drive.tankDrive(stick.getRawAxis(1), stick.getRawAxis(5));
+    double leftMovement = stick.getRawAxis(1);
+    double rightMovement = stick.getRawAxis(5);
+    double adjust = 0;
+    drive.setDeadband(0.2);
+
+    if(stick.getRawButton(1)) {
+      adjust = 0;
+
+      adjust = tx * 0.1;
+
+      leftMovement -= adjust;
+      rightMovement += adjust;
+    }
+
+    drive.tankDrive(leftMovement, rightMovement);
   }
 
   /**
