@@ -1,6 +1,12 @@
 package frc.robot;
 
+
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -16,6 +22,21 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  
+  Joystick stick = new Joystick(0);
+
+  WPI_TalonSRX leftMotor = new WPI_TalonSRX(0);
+  WPI_TalonSRX rightMotor = new WPI_TalonSRX(1);
+
+  VictorSPX leftFollow1 = new VictorSPX(2);
+  VictorSPX leftFollow2 = new VictorSPX(3);
+  VictorSPX rightFollow1 = new VictorSPX(4);
+  VictorSPX rightFollow2 = new VictorSPX(5);
+
+  DifferentialDrive drive = new DifferentialDrive(leftMotor, rightMotor);
+
+  double tx = 0, ty = 0;
+  boolean tv = false;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -26,6 +47,11 @@ public class Robot extends TimedRobot {
     m_chooser.addDefault("Default Auto", kDefaultAuto);
     m_chooser.addObject("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+    leftFollow1.follow(leftMotor);
+    rightFollow1.follow(rightMotor);
+    leftFollow2.follow(leftMotor);
+    rightFollow2.follow(rightMotor);
   }
 
   /**
@@ -79,6 +105,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+    drive.tankDrive(stick.getRawAxis(1), stick.getRawAxis(5));
   }
 
   /**
