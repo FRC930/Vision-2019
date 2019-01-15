@@ -26,13 +26,13 @@ public class Robot extends TimedRobot {
   
   Joystick stick = new Joystick(0);
 
-  WPI_TalonSRX leftMotor = new WPI_TalonSRX(0);
-  WPI_TalonSRX rightMotor = new WPI_TalonSRX(3);
+  WPI_TalonSRX leftMotor = new WPI_TalonSRX(4);
+  WPI_TalonSRX rightMotor = new WPI_TalonSRX(1);
 
-  VictorSPX leftFollow1 = new VictorSPX(1);
-  VictorSPX leftFollow2 = new VictorSPX(2);
-  VictorSPX rightFollow1 = new VictorSPX(4);
-  VictorSPX rightFollow2 = new VictorSPX(5);
+  VictorSPX leftFollow1 = new VictorSPX(5);
+  VictorSPX leftFollow2 = new VictorSPX(6);
+  VictorSPX rightFollow1 = new VictorSPX(2);
+  VictorSPX rightFollow2 = new VictorSPX(3);
 
   DifferentialDrive drive = new DifferentialDrive(leftMotor, rightMotor);
 
@@ -123,18 +123,18 @@ public class Robot extends TimedRobot {
     int tlongVal = (int)tlong.getDouble(0.0);
 
 
-    double leftMovement = stick.getRawAxis(1);
-    double rightMovement = stick.getRawAxis(5);
+    double leftMovement = stick.getRawAxis(1) * 0.5;
+    double rightMovement = stick.getRawAxis(5) * 0.5;
     double adjust = 0;
     drive.setDeadband(0.1);
 
     if(stick.getRawButton(1) && x != 0) {
       adjust = 0;
 
-      adjust = x * 0.1;
+      adjust = x * 0.04;
 
-      leftMovement += adjust;
-      rightMovement -= adjust;
+      leftMovement -= adjust;
+      rightMovement += adjust;
     }
 
     drive.tankDrive(leftMovement, rightMovement);
