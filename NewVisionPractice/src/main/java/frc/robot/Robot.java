@@ -1,6 +1,5 @@
 package frc.robot;
 
-
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
@@ -23,7 +22,12 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  
+  private double derivative = 0;
+  private double previous_error = 0;
+  private double Kp = 0;
+  private double Ki = 0;
+  private double Kd = 0;
+  private double integral = 0;
   Joystick stick = new Joystick(0);
 
   WPI_TalonSRX leftMotor = new WPI_TalonSRX(4);
@@ -130,8 +134,21 @@ public class Robot extends TimedRobot {
 
     if(stick.getRawButton(1) && x != 0) {
       adjust = 0;
-
-      adjust = x * 0.04;
+      //Linear Interpolation
+      //x + 1.0 * (0.0 - x)
+      //adjust = x * 0.04;
+        integral = integral + x * 0.02;
+        derivative = (x - previous_error) / 0.02;
+        adjust = Kp * x + Ki * integral + Kd * derivative;
+        previous_error = x;
+      if (x > 1.0)
+      {
+              adjust = 0.09 * x - 0.02;
+      }
+      else if (x < 1.0)
+      {
+              adjust = 0.09 * x + 0.02;
+      }
 
       leftMovement -= adjust;
       rightMovement += adjust;
