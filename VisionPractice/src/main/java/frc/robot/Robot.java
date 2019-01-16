@@ -108,33 +108,35 @@ public class Robot extends TimedRobot {
     NetworkTableEntry tx = table.getEntry("tx");
     NetworkTableEntry ty = table.getEntry("ty");
     NetworkTableEntry ta = table.getEntry("ta");
+    NetworkTableEntry tv = table.getEntry("tv");
 
     NetworkTableEntry tshort = table.getEntry("tshort");
     NetworkTableEntry tlong = table.getEntry("tlong");
-    //NewworkTableEntry ledMode = table.getEntry("ledMode");
-
+   
     //read values periodically
     double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
-
-    
+    double target = tv.getDouble(0.0);
+ 
     int tshortVal = (int)tshort.getDouble(0.0);
     int tlongVal = (int)tlong.getDouble(0.0);
-
 
     double leftMovement = stick.getRawAxis(1);
     double rightMovement = stick.getRawAxis(5);
     double adjust = 0;
+
     drive.setDeadband(0.1);
 
-    if(stick.getRawButton(1) && x != 0) {
-      adjust = 0;
+    if (target == 1.0) {
+      if(stick.getRawButton(1) && x != 0) {
+        adjust = 0;
 
-      adjust = x * 0.1;
+        adjust = x * 0.1;
 
-      leftMovement += adjust;
-      rightMovement -= adjust;
+        leftMovement += adjust;
+        rightMovement -= adjust;
+      }
     }
 
     drive.tankDrive(leftMovement, rightMovement);
@@ -145,5 +147,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
+  }
+
+  public double lerp(double a, double b, double t) {
+    return a * (1 - t) + (b * t);
   }
 }
