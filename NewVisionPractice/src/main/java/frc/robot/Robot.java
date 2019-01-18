@@ -130,6 +130,7 @@ public class Robot extends TimedRobot {
     double leftMovement = stick.getRawAxis(1) * 0.5;
     double rightMovement = stick.getRawAxis(5) * 0.5;
     double adjust = 0;
+    double minCommand = 0.02;
     drive.setDeadband(0.1);
 
     if(stick.getRawButton(1) && x != 0) {
@@ -137,17 +138,17 @@ public class Robot extends TimedRobot {
       //Linear Interpolation
       //x + 1.0 * (0.0 - x)
       //adjust = x * 0.04;
-        integral = integral + x * 0.02;
-        derivative = (x - previous_error) / 0.02;
-        adjust = Kp * x + Ki * integral + Kd * derivative;
-        previous_error = x;
+     //integral = integral + x * minCommand;
+     //derivative = (x - previous_error) / minCommand;
+     //adjust = Kp * x + Ki * integral + Kd * derivative;
+     //previous_error = x;
       if (x > 1.0)
       {
-              adjust = 0.09 * x - 0.02;
+              adjust = 0.09 * x - minCommand;
       }
       else if (x < 1.0)
       {
-              adjust = 0.09 * x + 0.02;
+              adjust = 0.09 * x + minCommand;
       }
 
       leftMovement -= adjust;
