@@ -22,12 +22,14 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  private final double opposite = 12.5;
   private double derivative = 0;
   private double previous_error = 0;
   private double Kp = 0;
   private double Ki = 0;
   private double Kd = 0;
   private double integral = 0;
+  private double distance;
   Joystick stick = new Joystick(0);
 
   WPI_TalonSRX leftMotor = new WPI_TalonSRX(4);
@@ -113,6 +115,8 @@ public class Robot extends TimedRobot {
     NetworkTableEntry ty = table.getEntry("ty");
     NetworkTableEntry ta = table.getEntry("ta");
 
+    //leftMotor.configSetCustomParam(newValue, paramIndex, timeoutMs);
+
     NetworkTableEntry tshort = table.getEntry("tshort");
     NetworkTableEntry tlong = table.getEntry("tlong");
     //NewworkTableEntry ledMode = table.getEntry("ledMode");
@@ -131,6 +135,7 @@ public class Robot extends TimedRobot {
     double rightMovement = stick.getRawAxis(5) * 0.5;
     double adjust = 0;
     double minCommand = 0.02;
+    double distance = opposite / Math.tan(y);
     drive.setDeadband(0.1);
 
     if(stick.getRawButton(1) && x != 0) {

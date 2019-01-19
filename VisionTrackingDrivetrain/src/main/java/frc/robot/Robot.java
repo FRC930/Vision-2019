@@ -2,8 +2,9 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -15,8 +16,8 @@ public class Robot extends TimedRobot {
  
   Joystick stick = new Joystick(0);
 
-  WPI_TalonSRX leftMotor = new WPI_TalonSRX(0);
-  WPI_TalonSRX rightMotor = new WPI_TalonSRX(3);
+  TalonSRX leftMotor = new TalonSRX(0);
+  TalonSRX rightMotor = new TalonSRX(3);
 
   VictorSPX leftFollow1 = new VictorSPX(1);
   VictorSPX leftFollow2 = new VictorSPX(2);
