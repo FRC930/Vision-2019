@@ -2,6 +2,8 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
@@ -32,13 +34,12 @@ public class Robot extends TimedRobot {
   private double distance;
   Joystick stick = new Joystick(0);
 
-  WPI_TalonSRX leftMotor = new WPI_TalonSRX(4);
-  WPI_TalonSRX rightMotor = new WPI_TalonSRX(1);
-
-  VictorSPX leftFollow1 = new VictorSPX(5);
-  VictorSPX leftFollow2 = new VictorSPX(6);
-  VictorSPX rightFollow1 = new VictorSPX(2);
-  VictorSPX rightFollow2 = new VictorSPX(3);
+  CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax leftFollow1 = new CANSparkMax(2, MotorType.kBrushless);
+  CANSparkMax leftFollow2 = new CANSparkMax(3, MotorType.kBrushless);
+  CANSparkMax rightMotor = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax rightFollow1 = new CANSparkMax(5, MotorType.kBrushless);
+  CANSparkMax rightFollow2 = new CANSparkMax(6, MotorType.kBrushless);
 
   DifferentialDrive drive = new DifferentialDrive(leftMotor, rightMotor);
 
@@ -125,7 +126,6 @@ public class Robot extends TimedRobot {
     double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
-
     
     int tshortVal = (int)tshort.getDouble(0.0);
     int tlongVal = (int)tlong.getDouble(0.0);
@@ -135,11 +135,13 @@ public class Robot extends TimedRobot {
     double rightMovement = stick.getRawAxis(5) * 0.5;
     double adjust = 0;
     double minCommand = 0.02;
-    double distance = opposite / Math.tan(y);
+    double distance = distanceCalc(degreeToRadian(y));
     drive.setDeadband(0.1);
 
+    System.out.println(NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0));
+    System.out.println("Height(in): 13 " + "Distance: " + distance + "Y limelight angle: " + y);
     if(stick.getRawButton(1) && x != 0) {
-      adjust = 0;
+      //adjust = 0;
       //Linear Interpolation
       //x + 1.0 * (0.0 - x)
       //adjust = x * 0.04;
@@ -147,7 +149,7 @@ public class Robot extends TimedRobot {
      //derivative = (x - previous_error) / minCommand;
      //adjust = Kp * x + Ki * integral + Kd * derivative;
      //previous_error = x;
-      if (x > 1.0)
+     /* if (x > 1.0)
       {
               adjust = 0.09 * x - minCommand;
       }
@@ -158,9 +160,32 @@ public class Robot extends TimedRobot {
 
       leftMovement -= adjust;
       rightMovement += adjust;
+      
+     
+      if (distance >= 34 && distance <= 38){
+        leftMotor.set(0);
+        rightMotor.set(0);
+      }
+      else if (distance < 34){
+        leftMotor.set(-0.1);
+        rightMotor.set(0.1);
+      }
+      else if (distance > 38){
+        leftMotor.set(0.1);
+        rightMotor.set(-0.1);
+      }*/
+      if (Math.abs(y) > .7){
+      leftMotor.set(.1 * y);
+      rightMotor.set(-.1 * y);
+      }
+      else{
+        leftMotor.set(0);
+        rightMotor.set(0);
+      }
+
     }
 
-    drive.tankDrive(leftMovement, rightMovement);
+    //drive.tankDrive(leftMovement, rightMovement);
   }
 
   /**
@@ -169,4 +194,17 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
   }
+
+  private static double degreeToRadian(double degree)
+  {
+      return Math.toRadians(degree);
+  } 
+
+  private static double distanceCalc(double radian)
+   {
+       double opposite = 12.5;
+       double final1 = opposite / Math.tan(radian);
+       return final1;
+   }
+
 }
