@@ -20,10 +20,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
   private final double opposite = 12.5;
   private double derivative = 0;
   private double previous_error = 0;
@@ -32,6 +29,7 @@ public class Robot extends TimedRobot {
   private double Kd = 0;
   private double integral = 0;
   private double distance;
+
   Joystick stick = new Joystick(0);
 
   CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
@@ -41,22 +39,18 @@ public class Robot extends TimedRobot {
   CANSparkMax rightFollow1 = new CANSparkMax(5, MotorType.kBrushless);
   CANSparkMax rightFollow2 = new CANSparkMax(6, MotorType.kBrushless);
 
-  DifferentialDrive drive = new DifferentialDrive(leftMotor, rightMotor);
-
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
   @Override
   public void robotInit() {
-    m_chooser.addDefault("Default Auto", kDefaultAuto);
-    m_chooser.addObject("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
 
     leftFollow1.follow(leftMotor);
     rightFollow1.follow(rightMotor);
     leftFollow2.follow(leftMotor);
     rightFollow2.follow(rightMotor);
+
   }
 
   /**
@@ -84,9 +78,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+
   }
 
   /**
@@ -94,15 +86,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+
   }
 
   /**
@@ -110,6 +94,23 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+
+    ///////////////////////////////////////////
+    // Drive code for testing
+    leftStick = stick.getRawAxis(1);
+    rightStick = stick.getRawAxis(5);
+
+    if (Math.abs(leftStick) < 0.05) {
+      leftMotor.set(0);
+    }
+    if (Math.abs(rightStick) < 0.05) {
+      rightMotor.set(0);
+    }
+
+    leftMotor.set(leftStick);
+    rightMotor.set(rightStick);
+    ////////////////////////////////////////////
+
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 
     NetworkTableEntry tx = table.getEntry("tx");
@@ -131,61 +132,39 @@ public class Robot extends TimedRobot {
     int tlongVal = (int)tlong.getDouble(0.0);
 
 
-    double leftMovement = stick.getRawAxis(1) * 0.5;
-    double rightMovement = stick.getRawAxis(5) * 0.5;
+    double leftMovement = 0.0; //stick.getRawAxis(1) * 0.5;
+    double rightMovement = 0.0; //stick.getRawAxis(5) * 0.5;
     double adjust = 0;
     double minCommand = 0.02;
     double distance = distanceCalc(degreeToRadian(y));
-    drive.setDeadband(0.1);
-
-    System.out.println(NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0));
-    System.out.println("Height(in): 13 " + "Distance: " + distance + "Y limelight angle: " + y);
-    if(stick.getRawButton(1) && x != 0) {
-      //adjust = 0;
-      //Linear Interpolation
-      //x + 1.0 * (0.0 - x)
-      //adjust = x * 0.04;
-     //integral = integral + x * minCommand;
-     //derivative = (x - previous_error) / minCommand;
-     //adjust = Kp * x + Ki * integral + Kd * derivative;
-     //previous_error = x;
-     /* if (x > 1.0)
+    double distanceAdjustLeft = 0;
+    double distanceAdjustRight = 0;
+   
+   // System.out.println(NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0));
+   // System.out.println("Height(in): 13 " + "Distance: " + distance + "Y limelight angle: " + y);
+    
+	if(stick.getRawButton(1) /*&& x != 0*/) {
+      if (x > 1.0)
       {
-              adjust = 0.09 * x - minCommand;
+            adjust = 0.09 * x - minCommand;
       }
       else if (x < 1.0)
       {
-              adjust = 0.09 * x + minCommand;
+            adjust = 0.09 * x + minCommand;
       }
+      distanceAdjustLeft = (.07 * y);
+      distanceAdjustRight = (-.07 * y);
 
-      leftMovement -= adjust;
-      rightMovement += adjust;
-      
-     
-      if (distance >= 34 && distance <= 38){
-        leftMotor.set(0);
-        rightMotor.set(0);
-      }
-      else if (distance < 34){
-        leftMotor.set(-0.1);
-        rightMotor.set(0.1);
-      }
-      else if (distance > 38){
-        leftMotor.set(0.1);
-        rightMotor.set(-0.1);
-      }*/
-      if (Math.abs(y) > .7){
-      leftMotor.set(.1 * y);
-      rightMotor.set(-.1 * y);
-      }
-      else{
-        leftMotor.set(0);
-        rightMotor.set(0);
-      }
+      leftMovement -= adjust + distanceAdjustLeft;
+      rightMovement += adjust + distanceAdjustRight;
 
+      System.out.println("tx:" + x);
+      System.out.println("ty:" + y);
+
+      //leftMotor.set(leftMovement);
+      //rightMotor.set(rightMovement);
     }
-
-    //drive.tankDrive(leftMovement, rightMovement);
+    
   }
 
   /**
