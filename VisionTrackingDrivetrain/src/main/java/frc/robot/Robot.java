@@ -1,9 +1,12 @@
 
 package frc.robot;
 
-import com.revrobotics.*;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -15,12 +18,13 @@ public class Robot extends TimedRobot {
  
   Joystick stick = new Joystick(0);
 
-  private static CANSparkMax left1;
-  private static CANSparkMax left2;
-  private static CANSparkMax left3;
-  private static CANSparkMax right1;
-  private static CANSparkMax right2;
-  private static CANSparkMax right3;
+  TalonSRX leftMotor = new TalonSRX(0);
+  TalonSRX rightMotor = new TalonSRX(3);
+
+  VictorSPX leftFollow1 = new VictorSPX(1);
+  VictorSPX leftFollow2 = new VictorSPX(2);
+  VictorSPX rightFollow1 = new VictorSPX(4);
+  VictorSPX rightFollow2 = new VictorSPX(5);
 
   DifferentialDrive drive = new DifferentialDrive(leftMotor, rightMotor);
 
