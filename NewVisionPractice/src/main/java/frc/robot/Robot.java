@@ -95,7 +95,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    ///////////////////////////////////////////
+    /*//////////////////////////////////////////
     // Drive code for testing
     leftStick = stick.getRawAxis(1);
     rightStick = stick.getRawAxis(5);
@@ -109,7 +109,7 @@ public class Robot extends TimedRobot {
 
     leftMotor.set(leftStick);
     rightMotor.set(rightStick);
-    ////////////////////////////////////////////
+    //////////////////////////////////////////*/
 
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 
@@ -124,48 +124,68 @@ public class Robot extends TimedRobot {
     //NewworkTableEntry ledMode = table.getEntry("ledMode");
 
     //read values periodically
-    double x = tx.getDouble(0.0);
-    double y = ty.getDouble(0.0);
-    double area = ta.getDouble(0.0);
+    // 0.1234 is the default value of the angle returned
+    final double defaultDistanceSpeed = -0.1;
+    final double defaultHorizontalSpeed = -0.01;
+    double x = tx.getDouble(0.1234);
+    double y = ty.getDouble(0.1234);
+    double area = ta.getDouble(0.1234);
     
-    int tshortVal = (int)tshort.getDouble(0.0);
-    int tlongVal = (int)tlong.getDouble(0.0);
+    int tshortVal = (int)tshort.getDouble(0.1234);
+    int tlongVal = (int)tlong.getDouble(0.1234);
 
 
     double leftMovement = 0.0; //stick.getRawAxis(1) * 0.5;
     double rightMovement = 0.0; //stick.getRawAxis(5) * 0.5;
-    double adjust = 0;
-    double minCommand = 0.02;
+    //double horizontalSpeedLeft = 0;
+    //double horizontalSpeedRight = 0;
+    double horizontalSpeed = 0;
+    double minCommand = 0.05;
     double distance = distanceCalc(degreeToRadian(y));
-    double distanceAdjustLeft = 0;
-    double distanceAdjustRight = 0;
+    //double distanceSpeedLeft = 0;
+    //double distanceSpeedRight = 0;
+    double distanceSpeed = 0;
+    double automatedBaseSpeed = 0.05;
    
    // System.out.println(NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0));
    // System.out.println("Height(in): 13 " + "Distance: " + distance + "Y limelight angle: " + y);
-    
-	if(stick.getRawButton(1) /*&& x != 0*/) {
-      if (x > 1.0)
-      {
-            adjust = 0.09 * x - minCommand;
+
+
+
+	  if(stick.getRawButton(1) /*&& x != 0*/) {
+      if(x > 5.0) {
+        horizontalSpeed = defaultHorizontalSpeed * (x / 2) - minCommand;
       }
-      else if (x < 1.0)
-      {
-            adjust = 0.09 * x + minCommand;
+      else if(x < -5.0) {
+        horizontalSpeed = defaultHorizontalSpeed * (x / 2) + minCommand;
       }
-      distanceAdjustLeft = (.07 * y);
-      distanceAdjustRight = (-.07 * y);
 
-      leftMovement -= adjust + distanceAdjustLeft;
-      rightMovement += adjust + distanceAdjustRight;
+      // adjust speed based on vertical angle
+      //distanceSpeedLeft = (defaultDistanceSpeed * y);
+      //distanceSpeedRight = (-defaultDistanceSpeed * y);
+      distanceSpeed = y / 30.0;
 
-      System.out.println("tx:" + x);
-      System.out.println("ty:" + y);
-
-      //leftMotor.set(leftMovement);
-      //rightMotor.set(rightMovement);
+      //leftMovement -= automatedBaseSpeed + horizontalSpeed + distanceSpeed;
+      //rightMovement += automatedBaseSpeed + horizontalSpeed + distanceSpeed;
     }
     
+    runAt((distanceSpeed+horizontalSpeed), -(distanceSpeed-horizontalSpeed));
+    //leftMotor.set(leftMovement);
+    //rightMotor.set(rightMovement);
+
+    System.out.println("********************************************************");
+    System.out.println("tx:" + x);
+    System.out.println("ty:" + y);
+    System.out.println("left horizontal speed:" + horizontalSpeed);
+    System.out.println("right horizontal speed:" + horizontalSpeed);
+    System.out.println("left distance speed:" + distanceSpeed);
+    System.out.println("right distance speed:" + distanceSpeed);
+    System.out.println("left movement:" + leftMovement);
+    System.out.println("right movement:" + rightMovement);
+    System.out.println("********************************************************");
   }
+
+
 
   /**
    * This function is called periodically during test mode.
@@ -186,4 +206,10 @@ public class Robot extends TimedRobot {
        return final1;
    }
 
+   public void runAt(double leftSpeed, double rightSpeed) {
+        
+    leftMotor.set(leftSpeed);
+    rightMotor.set(rightSpeed);
+
+}
 }
