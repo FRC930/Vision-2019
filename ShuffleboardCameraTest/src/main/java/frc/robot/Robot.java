@@ -35,6 +35,8 @@ public class Robot extends TimedRobot
 
     NetworkTable table = NetworkTableInstance.getDefault().getTable("Limelight");
 
+    CameraServer.getInstance().startAutomaticCapture();
+
     Shuffleboard.getTab("LiveWindow")
     .add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 300, 300)));
   }
