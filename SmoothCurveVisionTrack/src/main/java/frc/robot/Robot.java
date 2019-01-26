@@ -98,18 +98,26 @@ public class Robot extends TimedRobot {
     double distanceSpeed = 0;
     double automatedBaseSpeed = 0.05;
 
+    if (distance >= 90)
+    {
+      if (stick.getRawButton(1))
+      {
+        if (x > 5.0)
+        {
+          
+        }
+        else if (x < -5.0)
+        {
+
+        }
+      }
+    }
   }
 
   
   @Override
   public void testPeriodic() {
-    if (distance >= 90)
-    {
-      if (stick.getRawButton(1))
-      {
-
-      }
-    }
+    
   }
 
   private static double degreeToRadian(double degree)
