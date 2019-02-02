@@ -110,17 +110,19 @@ public class Robot extends TimedRobot {
 
     //if horizontal angle is positive, turn robot to negative and run curve code
     //if horizontal angle is negative, turn robot to positive and run curve code
+    System.out.println(speedCalc(distance));
+    System.out.println("DISTANCE: " + distance);
     if (distance >= 40)
     {
       if (stick.getRawButton(1))
       { 
          if (x > 5.0)
          {
-           runAt(0.1, speedCalc(distance));
+          runAt(speedCalc(distance), 0.1);
          }
          else if (x < -5.0)
          {
-           runAt(speedCalc(distance), 0.1);
+          runAt(0.1, speedCalc(distance));
          }
       }
     }
@@ -156,12 +158,11 @@ public static double speedCalc(double d)
       final int widthRobot = 70;
       double radian;
       double orad, irad;
-      double Rtn;
 
       radian = d / Math.sqrt(2);        
       orad = radian + (0.5 * widthRobot);
       irad = radian - (0.5 * widthRobot);
 
-      return Rtn = 0.1 * (irad / orad);
+      return 0.1 * (irad / orad);
   }
 }
