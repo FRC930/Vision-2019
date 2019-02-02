@@ -21,13 +21,17 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends TimedRobot {
   private final double opposite = 12.5;
-  private double derivative = 0;
-  private double previous_error = 0;
-  private double Kp = 0;
-  private double Ki = 0;
-  private double Kd = 0;
-  private double integral = 0;
-  private double distance;
+  private double derivative = 0.0;
+  private double previous_error = 0.0;
+  private double Kp = 0.0;
+  private double Ki = 0.0;
+  private double Kd = 0.0;
+  private double integral = 0.0;
+  private double distance = 0.0;
+  private double atanActualAngle = 0.0;
+
+  private final double COMPARE_ANGLE = 5.0;
+  private final double ROTATION_SPEED = 0.1;
 
   //Andrew's Code
   public final double DISTANCE_FROM_TARGET = 40.0;
@@ -89,8 +93,8 @@ public class Robot extends TimedRobot {
 
     final double defaultDistanceSpeed = -0.1;
     final double defaultHorizontalSpeed = -0.01;
-    double x = tx.getDouble(0.1234);
-    double y = ty.getDouble(0.1234);
+    double horizAngle = tx.getDouble(0.1234);
+    double deltaAngle = ty.getDouble(0.1234);
     double area = ta.getDouble(0.1234);
 
     int tshortVal = (int)tshort.getDouble(0.1234);
@@ -105,24 +109,30 @@ public class Robot extends TimedRobot {
 
     double distanceSpeed = 0;
     double automatedBaseSpeed = 0.05;
+    atanActualAngle = Math.atan(degreeToRadian(deltaAngle + INITIAL_ANGLE));
 
-    distance = HEIGHT / Math.tan(degreeToRadian(y) + INITIAL_ANGLE);
+    distance = Math.abs(HEIGHT / atanActualAngle);
 
     //if horizontal angle is positive, turn robot to negative and run curve code
     //if horizontal angle is negative, turn robot to positive and run curve code
     System.out.println(speedCalc(distance));
     System.out.println("DISTANCE: " + distance);
-    if (distance >= 40)
+    System.out.println("Horizontal Angle:" + horizAngle);
+    if (stick.getRawButton(1)) //if the "A" button is held
     {
-      if (stick.getRawButton(1))
+      if (distance >= DISTANCE_FROM_TARGET) //if the distance is greater than 40 inches
       { 
-         if (x > 5.0)
+         if (horizAngle > COMPARE_ANGLE)
          {
-          runAt(speedCalc(distance), 0.1);
+          runAt(ROTATION_SPEED, speedCalc(distance));
          }
-         else if (x < -5.0)
+         else if (horizAngle < -COMPARE_ANGLE)
          {
-          runAt(0.1, speedCalc(distance));
+          runAt(speedCalc(distance), ROTATION_SPEED);
+         }
+         else
+         {
+           runAt(0.0, 0.0);
          }
       }
     }
