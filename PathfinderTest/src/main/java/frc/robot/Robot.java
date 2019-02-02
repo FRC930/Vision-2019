@@ -38,8 +38,8 @@ private static final CANSparkMax right1 = new CANSparkMax(4, MotorType.kBrushles
 private static final CANSparkMax right2 = new CANSparkMax(5, MotorType.kBrushless);
 private static final CANSparkMax right3 = new CANSparkMax(6, MotorType.kBrushless);
 
-private static final CANEncoder leftEnc = new CANEncoder(left1);
-private static final CANEncoder rightEnc = new CANEncoder(right1);
+private static final Encoder rightEnc = new Encoder(0, 1);
+//private static final Encoder leftEnc = new Encoder(0, 1);
 
 private static final AHRS gyro = new AHRS(SerialPort.Port.kUSB);
 
@@ -61,6 +61,9 @@ EncoderFollower right;
   @Override
   public void robotInit() {
 
+    rightEnc.reset();
+    gyro.reset();
+
     left2.follow(left1);
     left3.follow(left1);
     right2.follow(right1);
@@ -74,13 +77,11 @@ EncoderFollower right;
     left = new EncoderFollower(modifier.getLeftTrajectory());
     right = new EncoderFollower(modifier.getRightTrajectory());
 
-    left.configureEncoder((int)leftEnc.getPosition(), 1, 0.1143);
+    left.configureEncoder((int)rightEnc.get(), 1024, 0.1143);
     left.configurePIDVA(0.7, 0.0, 0.0, 0.15, 0.06);
-    right.configureEncoder((int)rightEnc.getPosition(), 1, 0.1143);
+    right.configureEncoder((int)rightEnc.get(), 1024, 0.1143);
     right.configurePIDVA(0.7, 0.0, 0.0, 0.15, 0.06);
     
-    gyro.reset();
-
   }
 
   /**
@@ -123,8 +124,8 @@ EncoderFollower right;
   @Override
   public void teleopPeriodic() {
 
-    double l = left.calculate((int)leftEnc.getPosition());
-    double r = right.calculate((int)rightEnc.getPosition());
+    double l = left.calculate((int)rightEnc.get());
+    double r = right.calculate((int)rightEnc.get());
 
     double gyro_heading = gyro.getYaw();    // Assuming the gyro is giving a value in degrees
     double desired_heading = Pathfinder.r2d(left.getHeading());  // Should also be in degrees
@@ -132,11 +133,11 @@ EncoderFollower right;
     double angleDifference = Pathfinder.boundHalfDegrees(desired_heading - gyro_heading);
     double turn = 0.8 * (-1.0/80.0) * angleDifference;
 
-    left1.set(l + turn);
-    right1.set(r - turn);
-    //left1.set(0);
-    //right1.set(0);
-    System.out.println("Left: " + leftEnc.getPosition() + " Right: " + rightEnc.getPosition());
+    //left1.set(l + turn);
+    //right1.set(r - turn);
+    left1.set(0);
+    right1.set(0);
+    System.out.println("Get: " + rightEnc.get() + " Raw: " + rightEnc.getRaw());
 
   }
 
