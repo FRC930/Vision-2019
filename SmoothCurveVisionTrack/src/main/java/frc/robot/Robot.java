@@ -29,6 +29,14 @@ public class Robot extends TimedRobot {
   private double integral = 0;
   private double distance;
 
+  //Andrew's Code
+  public final double DISTANCE_FROM_TARGET = 40.0;
+  public final double CAM_HEIGHT = 14.375;
+  public final double TARGET_HEIGHT = 27.5;
+  public final double HEIGHT = TARGET_HEIGHT - CAM_HEIGHT;
+  public final double INITIAL_ANGLE = Math.atan(HEIGHT / DISTANCE_FROM_TARGET);
+  public final double ANGLE_ERROR = 0.45;
+
   Joystick stick = new Joystick(0);
 
   CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
@@ -93,24 +101,27 @@ public class Robot extends TimedRobot {
 
     double horizontalSpeed = 0;
     double minCommand = 0.05;
-    double distance = 100;//distanceCalc(degreeToRadian(y));
+    double distance = 0;//distanceCalc(degreeToRadian(y))
 
     double distanceSpeed = 0;
     double automatedBaseSpeed = 0.05;
 
-    if (distance >= 60)
+    distance = HEIGHT / Math.tan(degreeToRadian(y) + INITIAL_ANGLE);
+
+    //if horizontal angle is positive, turn robot to negative and run curve code
+    //if horizontal angle is negative, turn robot to positive and run curve code
+    if (distance >= 40)
     {
       if (stick.getRawButton(1))
       { 
-        runAt(0.1, 0.1);
-        // if (x > 5.0)
-        // {
-        //   runAt(0.1, speedCalc(distance));
-        // }
-        // else if (x < -5.0)
-        // {
-        //   runAt(speedCalc(distance), 0.1);
-        // }
+         if (x > 5.0)
+         {
+           runAt(0.1, speedCalc(distance));
+         }
+         else if (x < -5.0)
+         {
+           runAt(speedCalc(distance), 0.1);
+         }
       }
     }
   }
@@ -151,6 +162,6 @@ public static double speedCalc(double d)
       orad = radian + (0.5 * widthRobot);
       irad = radian - (0.5 * widthRobot);
 
-      return Rtn = 0.2 * (irad / orad);
+      return Rtn = 0.1 * (irad / orad);
   }
 }
