@@ -28,7 +28,7 @@ public class Robot extends TimedRobot {
   private double Kd = 0.0;
   private double integral = 0.0;
   private double distance = 0.0;
-  private double atanActualAngle = 0.0;
+  private double tanActualAngle = 0.0;
 
   private final double COMPARE_ANGLE = 5.0;
   private final double ROTATION_SPEED = 0.1;
@@ -109,26 +109,36 @@ public class Robot extends TimedRobot {
 
     double distanceSpeed = 0;
     double automatedBaseSpeed = 0.05;
-    atanActualAngle = Math.atan(degreeToRadian(deltaAngle + INITIAL_ANGLE));
+    tanActualAngle = Math.tan(degreeToRadian(deltaAngle) + INITIAL_ANGLE);
 
-    distance = Math.abs(HEIGHT / atanActualAngle);
+    distance = HEIGHT / tanActualAngle;
 
     //if horizontal angle is positive, turn robot to negative and run curve code
     //if horizontal angle is negative, turn robot to positive and run curve code
-    System.out.println(speedCalc(distance));
+    System.out.println(insideSpeedCalc(distance));
+    System.out.println(outsideSpeedCalc(distance));
     System.out.println("DISTANCE: " + distance);
     System.out.println("Horizontal Angle:" + horizAngle);
+    System.out.println("");
+
+    double leftMotorSpeed = 0;
+    double rightMotorSpeed = 0;
+
     if (stick.getRawButton(1)) //if the "A" button is held
     {
       if (distance >= DISTANCE_FROM_TARGET) //if the distance is greater than 40 inches
       { 
          if (horizAngle > COMPARE_ANGLE)
          {
-          runAt(ROTATION_SPEED, speedCalc(distance));
+          //runAt(-ROTATION_SPEED, speedCalc(distance));
+          leftMotorSpeed = -outsideSpeedCalc(distance);
+          rightMotorSpeed = ROTATION_SPEED;
          }
          else if (horizAngle < -COMPARE_ANGLE)
          {
-          runAt(speedCalc(distance), ROTATION_SPEED);
+          //runAt(-speedCalc(distance), ROTATION_SPEED);
+          rightMotorSpeed = ROTATION_SPEED; // FIGURE OUT ROTATING FROM RIGHT
+          leftMotorSpeed = -outsideSpeedCalc(distance);
          }
          else
          {
@@ -136,6 +146,9 @@ public class Robot extends TimedRobot {
          }
       }
     }
+    System.out.println("Left Motor Speed: " + leftMotorSpeed);
+    System.out.println("Right Motor Speed: " + rightMotorSpeed);
+    runAt(leftMotorSpeed, rightMotorSpeed);
   }
 
   
@@ -163,9 +176,9 @@ public class Robot extends TimedRobot {
    }
 
 
-public static double speedCalc(double d)
+public static double insideSpeedCalc(double d)
 {
-      final int widthRobot = 70;
+      final double widthRobot = 25.5;
       double radian;
       double orad, irad;
 
@@ -174,5 +187,18 @@ public static double speedCalc(double d)
       irad = radian - (0.5 * widthRobot);
 
       return 0.1 * (irad / orad);
+}
+
+public static double outsideSpeedCalc(double d)
+{
+      final double widthRobot = 25.5;
+      double radian;
+      double orad, irad;
+
+      radian = d / Math.sqrt(2);        
+      orad = radian + (0.5 * widthRobot);
+      irad = radian - (0.5 * widthRobot);
+
+      return 0.1 * (orad / irad);
   }
 }
