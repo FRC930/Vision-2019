@@ -93,23 +93,24 @@ public class Robot extends TimedRobot {
 
     double horizontalSpeed = 0;
     double minCommand = 0.05;
-    double distance = distanceCalc(degreeToRadian(y));
+    double distance = 100;//distanceCalc(degreeToRadian(y));
 
     double distanceSpeed = 0;
     double automatedBaseSpeed = 0.05;
 
-    if (distance >= 90)
+    if (distance >= 60)
     {
       if (stick.getRawButton(1))
-      {
-        if (x > 5.0)
-        {
-          
-        }
-        else if (x < -5.0)
-        {
-
-        }
+      { 
+        runAt(0.1, 0.1);
+        // if (x > 5.0)
+        // {
+        //   runAt(0.1, speedCalc(distance));
+        // }
+        // else if (x < -5.0)
+        // {
+        //   runAt(speedCalc(distance), 0.1);
+        // }
       }
     }
   }
@@ -139,23 +140,17 @@ public class Robot extends TimedRobot {
    }
 
 
-public static void speedCalc(int d)
+public static double speedCalc(double d)
 {
       final int widthRobot = 70;
       double radian;
       double orad, irad;
-      double ispeed;
+      double Rtn;
 
       radian = d / Math.sqrt(2);        
       orad = radian + (0.5 * widthRobot);
       irad = radian - (0.5 * widthRobot);
 
-      ispeed = 0.2 * (irad / orad);
-
-      System.out.println("Radius: " + radian);
-      System.out.println("Orad: " + orad);
-      System.out.println("Irad: " + irad);
-      System.out.println("Ispeed: " + ispeed);
-      System.out.println("Ospeed: " + 0.2 + "\n");
+      return Rtn = 0.2 * (irad / orad);
   }
 }
