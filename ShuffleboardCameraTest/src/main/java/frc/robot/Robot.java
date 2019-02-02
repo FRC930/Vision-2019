@@ -12,8 +12,11 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.shuffleboard.SendableCameraWrapper;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -37,8 +40,10 @@ public class Robot extends TimedRobot
 
     CameraServer.getInstance().startAutomaticCapture();
 
-    Shuffleboard.getTab("LiveWindow")
-    .add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 300, 300)));
+    ShuffleboardTab liveWindow = Shuffleboard.getTab("LiveWindow");
+
+    liveWindow.add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 6000, 6000)));
+    liveWindow.add("Memory Hog", new MemoryHog());
   }
 
   /**
@@ -91,5 +96,108 @@ public class Robot extends TimedRobot
    */
   @Override
   public void testPeriodic() {
+  }
+
+  static class MemoryHog implements Sendable
+  {
+    private String name;
+    private String subsystem;
+    private SendableBuilder builder;
+    private String[][] hogger;
+
+    @Override
+    public void initSendable(SendableBuilder builder)
+    {
+      this.builder = builder;
+      hogger = new String[1000][1000];
+
+      for(int a = 0; a < hogger.length; a++)
+        for(int b = 0; b < hogger[a].length; b++)
+          hogger[a][b] = "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging" +
+          "memoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhoggingmemoryhogging";
+    }
+
+    @Override
+    public String getName()
+    {
+      return name;
+    }
+
+    @Override
+    public void setName(String name)
+    {
+      this.name = name;
+    }
+
+    @Override
+    public String getSubsystem()
+    {
+      return subsystem;
+    }
+
+    public void setSubsystem(String subsystem)
+    {
+      this.subsystem = subsystem;
+    }
   }
 }
