@@ -7,10 +7,13 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.shuffleboard.SendableCameraWrapper;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -38,6 +41,14 @@ public class Robot extends TimedRobot {
   double horizontalSpeed = 0;
   double minCommand = 0.05;
 
+  // real-world measurements
+  public final double DISTANCE_FROM_TARGET = 40.0;
+  public final double CAM_HEIGHT = 14.375;
+  public final double TARGET_HEIGHT = 27.5;
+  public final double HEIGHT = TARGET_HEIGHT - CAM_HEIGHT;
+  public final double INITIAL_ANGLE = Math.atan(HEIGHT/DISTANCE_FROM_TARGET);
+  public final double ANGLE_ERROR = 0.45;
+
   CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
   CANSparkMax leftFollow1 = new CANSparkMax(2, MotorType.kBrushless);
   CANSparkMax leftFollow2 = new CANSparkMax(3, MotorType.kBrushless);
@@ -57,6 +68,11 @@ public class Robot extends TimedRobot {
     leftFollow2.follow(leftMotor);
     rightFollow2.follow(rightMotor);
 
+    Shuffleboard.startRecording();
+
+    CameraServer.getInstance().startAutomaticCapture();
+
+    Shuffleboard.getTab("LiveWindow").add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 6000, 6000)));
   }
 
   /**
@@ -154,7 +170,7 @@ public class Robot extends TimedRobot {
     double rightMovement = 0.0; //stick.getRawAxis(5) * 0.5;
     //double horizontalSpeedLeft = 0;
     //double horizontalSpeedRight = 0;
-    double distance = distanceCalc(degreeToRadian(y));
+    double distance = 0;
     //double distanceSpeedLeft = 0;
     //double distanceSpeedRight = 0;
     double distanceSpeed = 0;
@@ -210,16 +226,28 @@ public class Robot extends TimedRobot {
 
 
     // run the robot
-    runAt(leftMovement, -rightMovement);
+    //runAt(leftMovement, -rightMovement);
+
+    distance = HEIGHT / Math.tan(degreeToRadian(y) + INITIAL_ANGLE);
+    
+    if(Math.abs(y) > 2) {
+     
+    }
+
+   // if(y > 0)  += 0.5;
 
     System.out.println("********************************************************");
+    System.out.println("Distance: " + distance);
+    System.out.println("ty: " + y);
+    System.out.println("Initial Angle: " + INITIAL_ANGLE);
+    //System.out.println("Actual Angle: " + );
+    System.out.println("distance = " + HEIGHT + "/" + Math.tan(degreeToRadian(y) + INITIAL_ANGLE));
     //System.out.println("tx: " + x);
-    //System.out.println("ty: " + y);
-    System.out.println("view plane pitch: " + viewPlanePitch);
-    System.out.println("view plane yaw: " + viewPlaneYaw);
+    //System.out.println("ty: " + y)
     //System.out.println("ts: " + s);
-    //System.out.println("thor: " + thorVal);
-    //System.out.println("tvert: " + tvertVal);
+    System.out.println("thor: " + thorVal);
+    System.out.println("tvert: " + tvertVal);
+    System.out.println("tvert / thor" + (tvertVal / thorVal));
     /*System.out.println("left horizontal speed:" + horizontalSpeed);
     System.out.println("right horizontal speed:" + horizontalSpeed);
     System.out.println("left distance speed:" + distanceSpeed);
