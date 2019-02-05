@@ -120,6 +120,7 @@ public class Robot extends TimedRobot {
     NetworkTableEntry tlong = table.getEntry("tlong");
     NetworkTableEntry thor = table.getEntry("thor");
     NetworkTableEntry tvert = table.getEntry("tvert");
+    NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
     //NewworkTableEntry ledMode = table.getEntry("ledMode");
 
     //read values periodically
@@ -153,32 +154,26 @@ public class Robot extends TimedRobot {
       distanceSpeed = 0;
 
       // rotate the robot towards the target if horizontal angle is greater than 8 degrees on either side of the target
-      if(Math.abs(horizontalAngle) > 8.0) {
-        distanceSpeed = 0;
-        rotate(horizontalAngle);
-      }
-      // drive straight if not rotating
-      else {
-        horizontalSpeed = 0;
-        distanceSpeed = verticalAngle / 30.0;
-      }
-
-      // left and right speeds
-      leftMovement = distanceSpeed + horizontalSpeed;
-      rightMovement = distanceSpeed - horizontalSpeed;
-
-      //leftMovement -= automatedBaseSpeed + horizontalSpeed + distanceSpeed;
-      //rightMovement += automatedBaseSpeed + horizontalSpeed + distanceSpeed;
+      rotate(horizontalAngle, 3.0);
     }
 
+    if(Math.abs(stick.getRawAxis(1)) > 0.2) {
+      distanceSpeed = stick.getRawAxis(1) * 0.1;
+    }
+
+    if(Math.abs(stick.getRawAxis(4)) > 0.2) {
+      horizontalSpeed = stick.getRawAxis(4) * 0.1;
+    }
+
+    // left and right speeds
+    leftMovement = distanceSpeed + horizontalSpeed;
+    rightMovement = distanceSpeed - horizontalSpeed;
+
     // run the robot
-    //runAt(leftMovement, -rightMovement);
+    runAt(leftMovement, -rightMovement);
 
     // 
-    distance = HEIGHT / Math.tan(degreeToRadian(verticalAngle) + INITIAL_ANGLE);
-
-    List<ShuffleboardComponent<?>> components =  Shuffleboard.getTab("SmartDashboard").getComponents();
-    System.out.println(components);
+    //distance = HEIGHT / Math.tan(degreeToRadian(verticalAngle) + INITIAL_ANGLE);
 
     //System.out.println("********************************************************");
     //System.out.println("Distance: " + distance);
@@ -214,15 +209,10 @@ public class Robot extends TimedRobot {
     rightMotor.set(rightSpeed);
    }
 
-
    // rotate the robot based on horizontal angle offset
-   public void rotate(double xAngle) {
-      if(xAngle > 5.0) {
-        horizontalSpeed = defaultHorizontalSpeed * (xAngle / 2) - minCommand;
-      }
-      else if(xAngle < -5.0) {
-        horizontalSpeed = defaultHorizontalSpeed * (xAngle / 2) + minCommand;
-      }
+   public void rotate(double xAngle, double angleThreshold) {
+      if(Math.abs(xAngle) > angleThreshold) 
+        horizontalSpeed = defaultHorizontalSpeed * (xAngle / 1.5) - minCommand;
    }
 
    public static void startCapture() {
