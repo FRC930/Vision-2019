@@ -39,6 +39,9 @@ public class Robot extends TimedRobot {
   double horizontalSpeed = 0;
   double minCommand = 0.05;
 
+  double stickX = 0;
+  double stickY = 0;
+
   // real-world measurements
   public final double DISTANCE_FROM_TARGET = 40.0;
   public final double CAM_HEIGHT = 14.375;
@@ -157,12 +160,16 @@ public class Robot extends TimedRobot {
       rotate(horizontalAngle, 3.0);
     }
 
-    if(Math.abs(stick.getRawAxis(1)) > 0.2) {
-      distanceSpeed = stick.getRawAxis(1) * 0.1;
-    }
+     // Cubing values to create smoother function
+    stickX = -Math.pow(stick.getRawAxis(1), 3);
+    stickY = Math.pow(stick.getRawAxis(4), 3);
 
-    if(Math.abs(stick.getRawAxis(4)) > 0.2) {
-      horizontalSpeed = stick.getRawAxis(4) * 0.1;
+     // Joystick deadband
+    if(Math.abs(stickX) > 0.000124) {
+      distanceSpeed = stickX;
+    }
+    if(Math.abs(stickY) > 0.000124) {
+      horizontalSpeed = stickY;
     }
 
     // left and right speeds
@@ -170,7 +177,7 @@ public class Robot extends TimedRobot {
     rightMovement = distanceSpeed - horizontalSpeed;
 
     // run the robot
-    runAt(leftMovement, -rightMovement);
+    runAt(-leftMovement, rightMovement);
 
     // 
     //distance = HEIGHT / Math.tan(degreeToRadian(verticalAngle) + INITIAL_ANGLE);
@@ -212,7 +219,7 @@ public class Robot extends TimedRobot {
    // rotate the robot based on horizontal angle offset
    public void rotate(double xAngle, double angleThreshold) {
       if(Math.abs(xAngle) > angleThreshold) 
-        horizontalSpeed = defaultHorizontalSpeed * (xAngle / 1.5) - minCommand;
+        horizontalSpeed = defaultHorizontalSpeed * (-xAngle / 1.5); //- minCommand;
    }
 
    public static void startCapture() {
