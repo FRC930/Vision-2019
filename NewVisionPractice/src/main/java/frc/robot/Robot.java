@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
@@ -67,15 +68,17 @@ public class Robot extends TimedRobot {
 
     Shuffleboard.startRecording();
 
-    //UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-		//camera.setResolution(320, 240);
-		//camera.setFPS(10);
+    /*
+    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+		camera.setResolution(800, 600);
+		camera.setFPS(30);
+    */
 
     CameraServer.getInstance().startAutomaticCapture();
 
     Shuffleboard.getTab("LiveWindow").add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 6000, 6000)));
 
-    //startCapture();
+    startCapture();
   }
 
   @Override
@@ -226,7 +229,8 @@ public class Robot extends TimedRobot {
 		new Thread(() -> {
 			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
 			camera.setResolution(320, 240);
-			camera.setFPS(10);
+      camera.setFPS(10);
+      
 		}).start();
 	}
 }
