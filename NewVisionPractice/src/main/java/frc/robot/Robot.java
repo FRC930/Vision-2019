@@ -1,8 +1,6 @@
 package frc.robot;
 
 import javax.lang.model.util.ElementScanner6;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -10,6 +8,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.*;
@@ -24,24 +23,23 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
 
-  private final double opposite = 12.5;
-  private double derivative = 0;
-  private double previous_error = 0;
-  private double Kp = 0;
-  private double Ki = 0;
-  private double Kd = 0;
-  private double integral = 0;
-  private double distance;
-  private double errorCorrection = 0;
-
-  final double defaultHorizontalSpeed = -0.01;
-
+  //----Object Declarations----\\
   Joystick stick = new Joystick(0);
-  double horizontalSpeed = 0;
-  double minCommand = 0.05;
 
+  //----Variable Declarations----\\
+  double horizontalSpeed = 0;
   double stickX = 0;
   double stickY = 0;
+
+  //----Constants----\\
+  public final double DEFAULT_HORIZONTAL_SPEED = -0.01;
+  public final double DEFAULT_LIMELIGHT_VALUE = 0.1234;
+
+  // Controller constants
+  public final int A_BUTTON = 1;
+  public final int Y_BUTTON = 4;
+  public final int LEFT_Y_AXIS = 1;
+  public final int RIGHT_X_AXIS = 4;
 
   // real-world measurements
   public final double DISTANCE_FROM_TARGET = 40.0;
@@ -51,6 +49,7 @@ public class Robot extends TimedRobot {
   public final double INITIAL_ANGLE = Math.atan(HEIGHT/DISTANCE_FROM_TARGET);
   public final double ANGLE_ERROR = 0.45;
 
+  // Spark motor controllers
   CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
   CANSparkMax leftFollow1 = new CANSparkMax(2, MotorType.kBrushless);
   CANSparkMax leftFollow2 = new CANSparkMax(3, MotorType.kBrushless);
@@ -60,7 +59,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    /* set the limelight and USB camera to picture-in-picture mode,
+       which means the limelight's camera feed is shown in the
+       bottom right corner of the USB camera's feed
+    */
+    NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
 
+    // configure 2 motors on each side of the robot to follow the main motor on each side
     leftFollow1.follow(leftMotor);
     rightFollow1.follow(rightMotor);
     leftFollow2.follow(leftMotor);
@@ -74,9 +79,9 @@ public class Robot extends TimedRobot {
 		camera.setFPS(30);
     */
 
-    CameraServer.getInstance().startAutomaticCapture();
+    //CameraServer.getInstance().startAutomaticCapture();
 
-    Shuffleboard.getTab("LiveWindow").add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 6000, 6000)));
+    //Shuffleboard.getTab("LiveWindow").add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 6000, 6000)));
 
     startCapture();
   }
@@ -99,75 +104,44 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    /*//////////////////////////////////////////
-    // Drive code for testing
-    leftStick = stick.getRawAxis(1);
-    rightStick = stick.getRawAxis(5);
-
-    if (Math.abs(leftStick) < 0.05) {
-      leftMotor.set(0);
-    }
-    if (Math.abs(rightStick) < 0.05) {
-      rightMotor.set(0);
-    }
-
-    leftMotor.set(leftStick);
-    rightMotor.set(rightStick);
-    //////////////////////////////////////////*/
-
+    // NetworkTable object declaration used to get values from the limelight network table
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 
     NetworkTableEntry tx = table.getEntry("tx");
     NetworkTableEntry ty = table.getEntry("ty");
-    NetworkTableEntry ta = table.getEntry("ta");
-    NetworkTableEntry ts = table.getEntry("ts");
 
-    NetworkTableEntry tshort = table.getEntry("tshort");
-    NetworkTableEntry tlong = table.getEntry("tlong");
-    NetworkTableEntry thor = table.getEntry("thor");
-    NetworkTableEntry tvert = table.getEntry("tvert");
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
-    //NewworkTableEntry ledMode = table.getEntry("ledMode");
 
-    //read values periodically
-    // 0.1234 is the default value of the angle returned
-    final double defaultDistanceSpeed = -0.1;
-    double horizontalAngle = tx.getDouble(0.1234);
-    double verticalAngle = ty.getDouble(0.1234);
-    double s = ts.getDouble(0.1234);
-    double area = ta.getDouble(0.1234);
-    
-    int tshortVal = (int)tshort.getDouble(0.1234);
-    int tlongVal = (int)tlong.getDouble(0.1234);
-    int thorVal = (int)thor.getDouble(0.1234);
-    int tvertVal = (int)tvert.getDouble(0.1234);
+    //read values periodically, return 0.1234 as the default value if nothing is found
+    double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
+    double verticalAngle = ty.getDouble(DEFAULT_LIMELIGHT_VALUE);
 
     double leftMovement = 0.0;
     double rightMovement = 0.0;
     double distance = 0;
     double distanceSpeed = 0;
-    double automatedBaseSpeed = 0.05;
 
     horizontalSpeed = 0;
     distanceSpeed = 0;
 
-    // checks if the A button is currently being pressed
-    // getRawButton returns a boolean
-	  if(stick.getRawButton(1)) {
+    // checks if the A button is currently being pressed, returns a boolean
+	  if(stick.getRawButton(A_BUTTON)) {
       // reset the horizontal and distance speeds every time the code runs
       // this will prevent previous leftover values from moving the motors
       horizontalSpeed = 0;
       distanceSpeed = 0;
 
+      // if the A button is currently pressed, 
+      NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+
       // rotate the robot towards the target if horizontal angle is greater than 8 degrees on either side of the target
       rotate(horizontalAngle, 3.0);
     }
 
-     // Cubing values to create smoother function
-    stickX = -Math.pow(stick.getRawAxis(1), 3);
-    stickY = Math.pow(stick.getRawAxis(4), 3);
+    // Cubing values to create smoother function
+    stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
+    stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
 
-     // Joystick deadband
+    // Joystick deadband
     if(Math.abs(stickX) > 0.000124) {
       distanceSpeed = stickX;
     }
@@ -181,19 +155,6 @@ public class Robot extends TimedRobot {
 
     // run the robot
     runAt(-leftMovement, rightMovement);
-
-    // 
-    //distance = HEIGHT / Math.tan(degreeToRadian(verticalAngle) + INITIAL_ANGLE);
-
-    //System.out.println("********************************************************");
-    //System.out.println("Distance: " + distance);
-    //System.out.println("ty: " + verticalAngle);
-    //System.out.println("Initial Angle: " + INITIAL_ANGLE);
-    //System.out.println("distance = " + HEIGHT + "/" + Math.tan(degreeToRadian(verticalAngle) + INITIAL_ANGLE));
-    //System.out.println("thor: " + thorVal);
-    //System.out.println("tvert: " + tvertVal);
-    //System.out.println("tvert / thor" + (tvertVal / thorVal));
-    //System.out.println("********************************************************");
   }
 
   @Override
@@ -205,13 +166,6 @@ public class Robot extends TimedRobot {
       return Math.toRadians(degree);
   } 
 
-  private static double distanceCalc(double radian)
-   {
-       double opposite = 12.5;
-       double final1 = opposite / Math.tan(radian);
-       return final1;
-   }
-
    // drive the robot
    public void runAt(double leftSpeed, double rightSpeed) {
         
@@ -222,15 +176,15 @@ public class Robot extends TimedRobot {
    // rotate the robot based on horizontal angle offset
    public void rotate(double xAngle, double angleThreshold) {
       if(Math.abs(xAngle) > angleThreshold) 
-        horizontalSpeed = defaultHorizontalSpeed * (-xAngle / 1.5); //- minCommand;
+        horizontalSpeed = DEFAULT_HORIZONTAL_SPEED * (-xAngle / 1.5);
    }
 
    public static void startCapture() {
 		new Thread(() -> {
 			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-			camera.setResolution(320, 240);
-      camera.setFPS(10);
-      
+			camera.setResolution(160, 120);
+      camera.setFPS(30);
+      //camera.setVideoMode(VideoMode.PixelFormat.kRGB565, 320, 240, 30);
 		}).start();
 	}
 }
