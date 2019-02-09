@@ -43,7 +43,7 @@ public class Robot extends TimedRobot
     ShuffleboardTab liveWindow = Shuffleboard.getTab("LiveWindow");
 
     liveWindow.add("Video Stream", SendableCameraWrapper.wrap(CameraServer.getInstance().putVideo("Cam", 6000, 6000)));
-    liveWindow.add("Memory Hog", new MemoryHog());
+    //liveWindow.add("Memory Hog", new MemoryHog());
   }
 
   /**
