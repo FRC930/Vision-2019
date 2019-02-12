@@ -10,6 +10,7 @@ package frc.robot;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,13 +24,16 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
    */
+  UsbCamera camera; 
+  UsbCamera camera2;
+
   @Override
   public void robotInit() {
 
     new Thread(() -> {
       // Instantiate the USB cameras and begin capturing their video streams
-      UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
-      UsbCamera camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+      camera = CameraServer.getInstance().startAutomaticCapture(0);
+      camera2 = CameraServer.getInstance().startAutomaticCapture(1);
       // set the cameras' reolutions and FPS
 
 			camera.setResolution(480, 320);
@@ -56,6 +60,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+
+    camera.setResolution((int)SmartDashboard.getNumber("Width Camera 1", 480),(int) SmartDashboard.getNumber("Height Camera 1", 320));
+    camera2.setResolution((int)SmartDashboard.getNumber("Width Camera 2", 480),(int) SmartDashboard.getNumber("Height Camera 2", 320));
+
   }
 
   @Override
