@@ -115,33 +115,40 @@ public class Robot extends TimedRobot {
     // this will prevent previous leftover values from moving the motors
     horizontalSpeed = 0;
     distanceSpeed = 0;
+   
+    // the limelight networktable gets updated here, just in case
+    limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
+
+    // tx in the limelight table is updated, and horizontalAngle is updated
+    tx = limelightTable.getEntry("tx");
+    horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);  
+
+    /* if the A button is currently pressed, turn on the limelight's LEDs,
+      and if the A button is not pressed, turn off the LEDs
+
+      getEntry("ledMode") is used to get the LedMode property from the NetworkTable
+      setNumber() is used to set the state of the LedMode property (the integer 1 sets the LEDs off, 3 sets the LEDs on)
+      
+      ?: is a terenary operator in Java, it is basically a one-line if-else statement
+      To use it, give it a boolean variable, the do ?. Then after that, you can use it as
+      an if-else statement. 
+
+      stick.getRawButton(A_BUTTON) ? 1 : 0
+      In this example, we use stick.getRawButton(A_BUTTON) as our boolean variable
+      if stick.getRawButton(A_BUTTON) is down (value is true), then it will return 1
+      if stick.getRawButton(A_BUTTON) is up (value is false), then it will return 0
+
+      With the 0 and 1 then, we use it to do some math. 
+      When the stick.getRawButton(A_BUTTON) is down (true), it returns 1
+      1 + (2 * 1) = 3. 3 is sent into .setNumber(), which turns the LEDs on
+    */
+
+    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
 
     // checks if the A button is currently being pressed, returns a boolean
 	  if(stick.getRawButton(A_BUTTON)) {
-
-      /* if the A button is currently pressed, turn on the limelight's LEDs,
-         and if the A button is not pressed, turn off the LEDs
-
-         getEntry("ledMode") is used to get the LedMode property from the NetworkTable
-         setNumber() is used to set the state of the LedMode property (the integer 1 sets the LEDs off, 3 sets the LEDs on)
-         
-         ?: is a terenary operator in Java, it is basically a one-line if-else statement
-         To use it, give it a boolean variable, the do ?. Then after that, you can use it as
-         an if-else statement. 
-
-         stick.getRawButton(A_BUTTON) ? 1 : 0
-         In this example, we use stick.getRawButton(A_BUTTON) as our boolean variable
-         if stick.getRawButton(A_BUTTON) is down (value is true), then it will return 1
-         if stick.getRawButton(A_BUTTON) is up (value is false), then it will return 0
-
-         With the 0 and 1 then, we use it to do some math. 
-         When the stick.getRawButton(A_BUTTON) is down (true), it returns 1
-         1 + (2 * 1) = 3. 3 is sent into .setNumber(), which turns the LEDs on
-      */
-      limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
-
       // rotate the robot towards the target if horizontal angle is greater than the horizontal angle threshold on either side of the target
-      rotate(horizontalAngle);
+      horizontalSpeed = rotate(horizontalAngle);
     }
 
     // Cubing values to create smoother function
@@ -176,9 +183,10 @@ public class Robot extends TimedRobot {
    }
 
    // rotate the robot based on horizontal angle offset between the camera's crosshair and the target's crosshair
-   private void rotate(double xAngle) {
+   private double rotate(double xAngle) {
       if(Math.abs(xAngle) > HORIZONTAL_ANGLE_THRESHOLD) 
-        horizontalSpeed = DEFAULT_HORIZONTAL_SPEED * (-xAngle / 1.5);
+        return DEFAULT_HORIZONTAL_SPEED * (-xAngle / 1.5);
+      return 0.0;
    }
 
    // begin capturing video from two USB cameras and send their video streams to shuffleboard
