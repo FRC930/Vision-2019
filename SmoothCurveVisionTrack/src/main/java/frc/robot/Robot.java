@@ -167,25 +167,26 @@ public class Robot extends TimedRobot {
     rightMotor.set(rightSpeed);
   }
 
-
+   //Calculate inside wheel speed with an input of distance
   public static double insideSpeedCalc(double d) {
-    double radian;
-    double orad, irad;
+    double radian; // Radian from the middle of the robot
+    double orad, irad; // Outide radian, inside radian
 
-    radian = d / Math.sqrt(2);        
-    orad = radian + (HALF_ROBOT_WIDTH);
-    irad = radian - (HALF_ROBOT_WIDTH);
+    radian = d / Math.sqrt(2); // Cacl for radian from middle of the robot      
+    orad = radian + (HALF_ROBOT_WIDTH); // Calc forutside radian
+    irad = radian - (HALF_ROBOT_WIDTH); // Calc for inside wheel radian
 
     return (irad / orad);//0.6 * (irad / orad);
   }
 
+  //Calculate outside wheel speed with an input of distance
   public static double outsideSpeedCalc(double d) {
-    double radian;
-    double orad, irad;
+    double radian; // Radian from the middle of the robot
+    double orad, irad; // Outide radian, inside radian
 
-    radian = d / Math.sqrt(2);        
-    orad = radian + (HALF_ROBOT_WIDTH);
-    irad = radian - (HALF_ROBOT_WIDTH);
+    radian = d / Math.sqrt(2); //Calc for radian from middle of the robot 
+    orad = radian + (HALF_ROBOT_WIDTH); // Calc for outside wheel radian
+    irad = radian - (HALF_ROBOT_WIDTH); // Calc for inside wheel radian
 
     return (orad / irad);//0.6 * (orad / irad);
   }
