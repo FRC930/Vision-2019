@@ -30,13 +30,13 @@ public class Robot extends TimedRobot {
   private double distance = 0.0;
   private double tanActualAngle = 0.0;
 
-  private final double COMPARE_ANGLE = 5.0;
+  private final double COMPARE_ANGLE = 0.5;
   private final double ROTATION_SPEED = 0.1;
 
   //Andrew's Code
-  public final double DISTANCE_FROM_TARGET = 40.0;
-  public final double CAM_HEIGHT = 14.375;
-  public final double TARGET_HEIGHT = 27.5;
+  public final double DISTANCE_FROM_TARGET = 15.25;
+  public final double CAM_HEIGHT = 27.5;
+  public final double TARGET_HEIGHT = 31.375;
   public final double HEIGHT = TARGET_HEIGHT - CAM_HEIGHT;
   public final double INITIAL_ANGLE = Math.atan(HEIGHT / DISTANCE_FROM_TARGET);
   public final double ANGLE_ERROR = 0.45;
@@ -124,25 +124,27 @@ public class Robot extends TimedRobot {
     double leftMotorSpeed = 0;
     double rightMotorSpeed = 0;
 
+    System.out.println("Press A");
+
     if (stick.getRawButton(1)) //if the "A" button is held
     {
+      System.out.println("A is held.");
       if (distance >= DISTANCE_FROM_TARGET) //if the distance is greater than 40 inches
       { 
+        System.out.println("DISTANCE >= DISTANCE_FROM_TARGET");
          if (horizAngle > COMPARE_ANGLE)
          {
+           System.out.println("HorizAngle > CompareAngle");
           //runAt(-ROTATION_SPEED, speedCalc(distance));
           leftMotorSpeed = -outsideSpeedCalc(distance);
           rightMotorSpeed = ROTATION_SPEED;
          }
          else if (horizAngle < -COMPARE_ANGLE)
          {
+          System.out.println("HorizAngle < -CompareAngle");
           //runAt(-speedCalc(distance), ROTATION_SPEED);
           rightMotorSpeed = ROTATION_SPEED; // FIGURE OUT ROTATING FROM RIGHT
           leftMotorSpeed = -outsideSpeedCalc(distance);
-         }
-         else
-         {
-           runAt(0.0, 0.0);
          }
       }
     }
@@ -186,7 +188,7 @@ public static double insideSpeedCalc(double d)
       orad = radian + (0.5 * widthRobot);
       irad = radian - (0.5 * widthRobot);
 
-      return 0.1 * (irad / orad);
+      return 0.6 * (irad / orad);
 }
 
 public static double outsideSpeedCalc(double d)
@@ -199,6 +201,6 @@ public static double outsideSpeedCalc(double d)
       orad = radian + (0.5 * widthRobot);
       irad = radian - (0.5 * widthRobot);
 
-      return 0.1 * (orad / irad);
+      return 0.6 * (orad / irad);
   }
 }
