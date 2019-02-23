@@ -1,16 +1,10 @@
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -19,7 +13,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
+
 public class Robot extends TimedRobot {
+
+  /*
   private final double opposite = 12.5;
   private double derivative = 0.0;
   private double previous_error = 0.0;
@@ -28,18 +25,20 @@ public class Robot extends TimedRobot {
   private double Kd = 0.0;
   private double integral = 0.0;
   private double distance = 0.0;
+  */
   private double tanActualAngle = 0.0;
-
-  private final double COMPARE_ANGLE = 0.5;
-  private final double ROTATION_SPEED = 0.1;
+  
+  private static final double COMPARE_ANGLE = 0.5;
+  private static final double ROTATION_SPEED = 0.1;
 
   //Andrew's Code
-  public final double DISTANCE_FROM_TARGET = 15.25;
-  public final double CAM_HEIGHT = 27.5;
-  public final double TARGET_HEIGHT = 31.375;
-  public final double HEIGHT = TARGET_HEIGHT - CAM_HEIGHT;
-  public final double INITIAL_ANGLE = Math.atan(HEIGHT / DISTANCE_FROM_TARGET);
-  public final double ANGLE_ERROR = 0.45;
+  private static final double DISTANCE_FROM_TARGET = 15.25;
+  private static final double CAM_HEIGHT = 27.5;
+  private static final double TARGET_HEIGHT = 31.375;
+  private static final double HEIGHT = TARGET_HEIGHT - CAM_HEIGHT;
+  private static final double INITIAL_ANGLE = Math.atan(HEIGHT / DISTANCE_FROM_TARGET);
+  private static final double ANGLE_ERROR = 0.45;
+  private static final double HALF_ROBOT_WIDTH = 25.5 / 2;
 
   Joystick stick = new Joystick(0);
 
@@ -52,30 +51,25 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    
     leftFollow1.follow(leftMotor);
     rightFollow1.follow(rightMotor);
     leftFollow2.follow(leftMotor);
     rightFollow2.follow(rightMotor);
-
   }
 
  
   @Override
   public void robotPeriodic() {
-    
   }
 
   
   @Override
   public void autonomousInit() {
-   
   }
 
   
   @Override
   public void autonomousPeriodic() {
-
   }
 
   
@@ -155,52 +149,45 @@ public class Robot extends TimedRobot {
 
   
   @Override
-  public void testPeriodic() {
-    
+  public void testPeriodic() {  
   }
 
-  private static double degreeToRadian(double degree)
-  {
-      return Math.toRadians(degree);
+  private static double degreeToRadian(double degree) {
+    return Math.toRadians(degree);
   } 
 
-  private static double distanceCalc(double radian)
-   {
-       double opposite = 12.5;
-       double final1 = opposite / Math.tan(radian);
-       return final1;
-   }
-
-   public void runAt(double leftSpeed, double rightSpeed) 
-   {        
-      leftMotor.set(leftSpeed);
-      rightMotor.set(rightSpeed);
-   }
-
-
-public static double insideSpeedCalc(double d)
-{
-      final double widthRobot = 25.5;
-      double radian;
-      double orad, irad;
-
-      radian = d / Math.sqrt(2);        
-      orad = radian + (0.5 * widthRobot);
-      irad = radian - (0.5 * widthRobot);
-
-      return 0.6 * (irad / orad);
-}
-
-public static double outsideSpeedCalc(double d)
-{
-      final double widthRobot = 25.5;
-      double radian;
-      double orad, irad;
-
-      radian = d / Math.sqrt(2);        
-      orad = radian + (0.5 * widthRobot);
-      irad = radian - (0.5 * widthRobot);
-
-      return 0.6 * (orad / irad);
+  private static double distanceCalc(double radian) {
+    double opposite = 12.5;
+    double final1 = opposite / Math.tan(radian);
+    return final1;
   }
-}
+
+  public void runAt(double leftSpeed, double rightSpeed) {        
+    leftMotor.set(leftSpeed);
+    rightMotor.set(rightSpeed);
+  }
+
+
+  public static double insideSpeedCalc(double d) {
+    double radian;
+    double orad, irad;
+
+    radian = d / Math.sqrt(2);        
+    orad = radian + (HALF_ROBOT_WIDTH);
+    irad = radian - (HALF_ROBOT_WIDTH);
+
+    return (irad / orad);//0.6 * (irad / orad);
+  }
+
+  public static double outsideSpeedCalc(double d) {
+    double radian;
+    double orad, irad;
+
+    radian = d / Math.sqrt(2);        
+    orad = radian + (HALF_ROBOT_WIDTH);
+    irad = radian - (HALF_ROBOT_WIDTH);
+
+    return (orad / irad);//0.6 * (orad / irad);
+  }
+
+} //end of class
