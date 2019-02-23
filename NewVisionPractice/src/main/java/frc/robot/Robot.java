@@ -1,6 +1,7 @@
 package frc.robot;
 
 //----Imports----\\
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.cscore.UsbCamera;
@@ -155,7 +156,8 @@ public class Robot extends TimedRobot {
       1 + (2 * 1) = 3. 3 is sent into .setNumber(), which turns the LEDs on
     */
 
-    limelightTable.getEntry("ledMode").setNumber(3);//1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+    //1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
 
     // checks if the A button is currently being pressed, returns a boolean
 	  if(stick.getRawButton(A_BUTTON)) {
