@@ -7,6 +7,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -30,11 +31,11 @@ public class Robot extends TimedRobot {
   CANSparkMax rightFollow1 = new CANSparkMax(5, MotorType.kBrushless);
   CANSparkMax rightFollow2 = new CANSparkMax(6, MotorType.kBrushless);
 
-  Solenoid hatchIntake = new Solenoid(0);
+  DoubleSolenoid hatchIntake = new DoubleSolenoid(0, 1);
 
   //----Constants----\\
-  private final double DEFAULT_HORIZONTAL_SPEED = -0.01;
-  private final double HORIZONTAL_ANGLE_THRESHOLD = 0.3;
+  private final double DEFAULT_HORIZONTAL_SPEED = 0.01;
+  private final double HORIZONTAL_ANGLE_THRESHOLD = 1;
 
   // default value that the limelight will return if no targets are found
   private final double DEFAULT_LIMELIGHT_VALUE = 0.1234;
@@ -52,17 +53,21 @@ public class Robot extends TimedRobot {
   private final int CAMERA2_HEIGHT = 120;
   private final int CAMERA2_FPS = 30;
 
-  private final double ANGLE_OFFSET = 18.8;
+  private final double ANGLE_OFFSET = 26.76551875;
 
   //----Variable Declarations----\\
 
   // get the angle of the horizontal offset between the camera's crosshair and the target's crosshair
   NetworkTableEntry tx = limelightTable.getEntry("tx");
+  NetworkTableEntry ty = limelightTable.getEntry("ty");
+  NetworkTableEntry ta;
 
   // typecast the NetworkTable data into a double
   // getDouble() will return a default value if no value is found
   double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
+  double verticalAngle = ty.getDouble(DEFAULT_LIMELIGHT_VALUE);
   double calculatedHorizontalAngle;
+  double areaPercentage;
 
   // left and right speeds for the drivetrain 
   double leftMovement = 0.0;
@@ -79,7 +84,7 @@ public class Robot extends TimedRobot {
   double stickY = 0;
 
   boolean bPressed = false;
-  boolean pistonOn = false;
+  boolean pistonOut = false;
 
   @Override
   public void robotInit() {
@@ -134,7 +139,11 @@ public class Robot extends TimedRobot {
     // tx in the limelight table is updated, and horizontalAngle is updated
     tx = limelightTable.getEntry("tx");
     horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
-    calculatedHorizontalAngle = horizontalAngle - ANGLE_OFFSET;  
+    ty = limelightTable.getEntry("ty");
+    verticalAngle = ty.getDouble(DEFAULT_LIMELIGHT_VALUE);
+    ta = limelightTable.getEntry("ta");
+    areaPercentage = ta.getDouble(DEFAULT_LIMELIGHT_VALUE);
+    calculatedHorizontalAngle = horizontalAngle + ANGLE_OFFSET;  
 
     /* if the A button is currently pressed, turn on the limelight's LEDs,
       and if the A button is not pressed, turn off the LEDs
@@ -162,13 +171,15 @@ public class Robot extends TimedRobot {
     // checks if the A button is currently being pressed, returns a boolean
 	  if(stick.getRawButton(A_BUTTON)) {
       // rotate the robot towards the target if horizontal angle is greater than the horizontal angle threshold on either side of the target
-      horizontalSpeed = rotate(calculatedHorizontalAngle);
+
+      horizontalSpeed = rotate(horizontalAngle);
     }
 
     // Cubing values to create smoother function
     stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
     stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
 
+    // limit the speed of the robot
     stickX = stickX * 0.2;
     stickY = stickY * 0.2;
 
@@ -187,19 +198,24 @@ public class Robot extends TimedRobot {
     // run the robot based on the left and right speeds of the drive train
     runAt(-leftMovement, rightMovement);
 
+    // press and release the B button to toggle the hatch intake
     if(stick.getRawButton(2) && !bPressed) {
       bPressed = true;
     }
     else if(!stick.getRawButton(2) && bPressed) {
-      pistonOn = !pistonOn;
+      pistonOut = !pistonOut;
       bPressed = false;
     }
 
-    hatchIntake.set(pistonOn);
-
-    System.out.println("*************************************");
-    System.out.println("Given Angle: " + horizontalAngle);
-    System.out.println("Calculated Angle: " + calculatedHorizontalAngle);
+    if(pistonOut) {
+      hatchIntake.set(DoubleSolenoid.Value.kForward);
+    }
+    else if(!pistonOut) {
+      hatchIntake.set(DoubleSolenoid.Value.kReverse);
+    }
+    else {
+      hatchIntake.set(DoubleSolenoid.Value.kOff);
+    }
   }
 
   @Override
@@ -207,7 +223,7 @@ public class Robot extends TimedRobot {
 
   }
 
-   // drive the robot
+   // drive the robot based on the specified left and right speeds
    private void runAt(double leftSpeed, double rightSpeed) {      
     leftMotor.set(leftSpeed);
     rightMotor.set(rightSpeed);
@@ -215,9 +231,17 @@ public class Robot extends TimedRobot {
 
    // rotate the robot based on horizontal angle offset between the camera's crosshair and the target's crosshair
    private double rotate(double xAngle) {
-      if(Math.abs(xAngle) > HORIZONTAL_ANGLE_THRESHOLD) 
-        return DEFAULT_HORIZONTAL_SPEED * (xAngle / 1.5);
-      return 0.0;
+     double horizontalAdjustment = 0;
+
+      if(Math.abs(xAngle) > HORIZONTAL_ANGLE_THRESHOLD && areaPercentage < 15.0) 
+        horizontalAdjustment = DEFAULT_HORIZONTAL_SPEED * xAngle;// * (1 / (verticalAngle / 9))));
+
+      if(horizontalAdjustment > 0.6)
+        horizontalAdjustment = 0.6;
+      else if(horizontalAdjustment < -0.6)
+        horizontalAdjustment = -0.6;
+
+      return horizontalAdjustment;
    }
 
    // begin capturing video from two USB cameras and send their video streams to shuffleboard
