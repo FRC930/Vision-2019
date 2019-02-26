@@ -2,6 +2,9 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -40,6 +43,10 @@ public class Robot extends TimedRobot {
   private static final double ANGLE_ERROR = 0.45;
   private static final double HALF_ROBOT_WIDTH = 25.5 / 2;
 
+  private final int CAMERA1_WIDTH = 320;
+  private final int CAMERA1_HEIGHT = 240;
+  private final int CAMERA1_FPS = 30;
+
   Joystick stick = new Joystick(0);
 
   CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
@@ -55,6 +62,8 @@ public class Robot extends TimedRobot {
     rightFollow1.follow(rightMotor);
     leftFollow2.follow(leftMotor);
     rightFollow2.follow(rightMotor);
+
+    startCapture();
   }
 
  
@@ -101,11 +110,17 @@ public class Robot extends TimedRobot {
     double minCommand = 0.05;
     double distance = 0;//distanceCalc(degreeToRadian(y))
 
+    double stickX;
+    double stickY;
+
     double distanceSpeed = 0;
     double automatedBaseSpeed = 0.05;
     tanActualAngle = Math.tan(degreeToRadian(deltaAngle) + INITIAL_ANGLE);
 
     distance = HEIGHT / tanActualAngle;
+
+
+    table.getEntry("ledMode").setNumber(3);
 
     //if horizontal angle is positive, turn robot to negative and run curve code
     //if horizontal angle is negative, turn robot to positive and run curve code
@@ -142,6 +157,22 @@ public class Robot extends TimedRobot {
          }
       }
     }
+
+      // Cubing values to create smoother function
+    stickX = -Math.pow(stick.getRawAxis(1), 3);
+    stickY = Math.pow(stick.getRawAxis(4), 3);
+
+    // manual drive controls
+    if(Math.abs(stickX) > 0.000124) {
+      distanceSpeed = stickX;
+    }
+    if(Math.abs(stickY) > 0.000124) {
+      horizontalSpeed = stickY;
+    }
+
+    leftMotorSpeed = distanceSpeed + horizontalSpeed;
+    rightMotorSpeed = distanceSpeed - horizontalSpeed;
+    
     System.out.println("Left Motor Speed: " + leftMotorSpeed);
     System.out.println("Right Motor Speed: " + rightMotorSpeed);
     runAt(leftMotorSpeed, rightMotorSpeed);
@@ -191,6 +222,17 @@ public class Robot extends TimedRobot {
     return (orad / irad);//0.6 * (orad / irad);
   }
 
+  private void startCapture() {
+    // creates a thread which runs concurrently with the program
+		new Thread(() -> {
+      // Instantiate the USB cameras and begin capturing their video streams
+      UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
+
+      // set the cameras' resolutions and FPS
+			camera.setResolution(CAMERA1_WIDTH, CAMERA1_HEIGHT);
+      camera.setFPS(CAMERA1_FPS);
+		}).start();
+  }
 } //end of class 
 
 
