@@ -159,8 +159,8 @@ public class Robot extends TimedRobot {
     }
 
       // Cubing values to create smoother function
-    stickX = -Math.pow(stick.getRawAxis(1), 3);
-    stickY = Math.pow(stick.getRawAxis(4), 3);
+    stickX = -Math.pow(stick.getRawAxis(4), 3);
+    stickY = Math.pow(stick.getRawAxis(1), 3);
 
     // manual drive controls
     if(Math.abs(stickX) > 0.000124) {

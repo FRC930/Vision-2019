@@ -34,7 +34,7 @@ public class Robot extends TimedRobot {
   DoubleSolenoid hatchIntake = new DoubleSolenoid(0, 1);
 
   //----Constants----\\
-  private final double DEFAULT_HORIZONTAL_SPEED = 0.01;
+  private final double DEFAULT_HORIZONTAL_SPEED = 0.02;
   private final double HORIZONTAL_ANGLE_THRESHOLD = 1;
 
   // default value that the limelight will return if no targets are found
@@ -54,6 +54,7 @@ public class Robot extends TimedRobot {
   private final int CAMERA2_FPS = 30;
 
   private final double ANGLE_OFFSET = 26.76551875;
+  private final double MIN_COMMAND = 0.05;
 
   //----Variable Declarations----\\
 
@@ -93,7 +94,7 @@ public class Robot extends TimedRobot {
        which means the limelight's camera feed is shown in the
        bottom right corner of the USB camera's feed
     */
-    limelightTable.getEntry("stream").setNumber(2);
+    limelightTable.getEntry("stream").setNumber(3);
 
     // configure 2 motors on each side of the robot to follow the main motor on each side
     leftFollow1.follow(leftMotor);
@@ -166,7 +167,8 @@ public class Robot extends TimedRobot {
     */
 
     //1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
-    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+    //limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+    limelightTable.getEntry("ledMode").setNumber(3);
 
     // checks if the A button is currently being pressed, returns a boolean
 	  if(stick.getRawButton(A_BUTTON)) {
@@ -233,15 +235,22 @@ public class Robot extends TimedRobot {
    private double rotate(double xAngle) {
      double horizontalAdjustment = 0;
 
-      if(Math.abs(xAngle) > HORIZONTAL_ANGLE_THRESHOLD && areaPercentage < 15.0) 
+      if(Math.abs(xAngle) > HORIZONTAL_ANGLE_THRESHOLD && areaPercentage < 30.0) 
         horizontalAdjustment = DEFAULT_HORIZONTAL_SPEED * xAngle;// * (1 / (verticalAngle / 9))));
 
-      if(horizontalAdjustment > 0.6)
-        horizontalAdjustment = 0.6;
-      else if(horizontalAdjustment < -0.6)
-        horizontalAdjustment = -0.6;
+      if(horizontalAdjustment > 0.4)
+        horizontalAdjustment = 0.4;
+      else if(horizontalAdjustment < -0.4)
+        horizontalAdjustment = -0.4;
 
+      System.out.println("horizontal adjustment: " + horizontalAdjustment);
       return horizontalAdjustment;
+   }
+
+   private static double distanceCalc(double radian) {
+      double opposite = 12.5;
+      double final1 = opposite / Math.tan(radian);
+      return final1;
    }
 
    // begin capturing video from two USB cameras and send their video streams to shuffleboard
