@@ -1,0 +1,159 @@
+
+package frc.robot;
+
+import edu.wpi.first.wpilibj.TimedRobot;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.Joystick;
+
+public class Robot extends TimedRobot {
+ 
+  private static final double CAMERA_HEIGHT = 0;       //height of camera lens from the ground.
+  private static final double TARGET_HEIGHT = 0;       //height of target from the ground to the very top of the target
+  private static final double TRIANGLE_HEIGHT = TARGET_HEIGHT - CAMERA_HEIGHT;   //the difference between the camera height and the target height (used to calculate distance)
+  private static final double CAMERA_ANGLE = 0;        //the angle the camera is on when mounted on the robot
+  private static final double MAXINUM_DISTANCE = 0;    //the maxinum distance the robot can be from the target to track
+  private static final int A_BUTTON = 1;               //the id value of the A button
+  private final int LEFT_Y_AXIS = 1;                  //the left vertical axis of the joystick
+  private final int RIGHT_X_AXIS = 4;                 //the right horizontal axis of the joystick
+  private final double JOYSTICK_DEADBAND = 0.000124;  //deadband of the joystick, 
+  private final double DEFAULT_LIMELIGHT_VALUE = 0.1234;  // default value that the limelight will return if no targets are found
+
+  private static double distanceFromTarget = 0;  //the distance the camera is from the target, horizontally
+  private static double verticalAngle = 0;       //ty of the camera. the angle between the camera perpendicularly and the target
+  private static double horizontalAngle = 0;     //t of the camera
+  private static double triagleAngle = 0;        //the angle of the ty plus the angle of the camera
+
+  // values of the left joystick's x-axis and the right joystick's y-axis
+  private static double stickX = 0;
+  private static double stickY = 0;
+
+  // speed of the robot in the left and right directions
+  private static double horizontalSpeed = 0;
+
+  // speed of the robot in the forward and backward directions
+  private static double distanceSpeed = 0;
+
+  //network table of the limelight, stores all the values the limelight has
+  NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
+
+  // Spark motor controllers
+  CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax leftFollow1 = new CANSparkMax(2, MotorType.kBrushless);
+  CANSparkMax leftFollow2 = new CANSparkMax(3, MotorType.kBrushless);
+  CANSparkMax rightMotor = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax rightFollow1 = new CANSparkMax(5, MotorType.kBrushless);
+  CANSparkMax rightFollow2 = new CANSparkMax(6, MotorType.kBrushless);
+  
+  // xbox controller used for controlling the robot
+  Joystick stick = new Joystick(0);
+
+  @Override
+  public void robotInit() {
+    
+    /* set the limelight and USB camera to picture-in-picture mode,
+       which means the limelight's camera feed is shown in the
+       bottom right corner of the USB camera's feed
+    */
+    limelightTable.getEntry("stream").setNumber(3);
+
+    // configure 2 motors on each side of the robot to follow the main motor on each side
+    leftFollow1.follow(leftMotor);
+    rightFollow1.follow(rightMotor);
+    leftFollow2.follow(leftMotor);
+    rightFollow2.follow(rightMotor);
+  }
+
+ 
+  @Override
+  public void robotPeriodic() {
+
+    // reset the horizontal and distance speeds every time the code runs
+    // this will prevent previous leftover values from moving the motors
+    horizontalSpeed = 0;
+    distanceSpeed = 0;
+
+    //get ty and tx
+    NetworkTableEntry tx = limelightTable.getEntry("tx");
+    NetworkTableEntry ty = limelightTable.getEntry("ty");
+    double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
+    double verticalAngle = ty.getDouble(DEFAULT_LIMELIGHT_VALUE);
+
+    //create the angle of the triangle, used to calculate
+    triagleAngle = verticalAngle + CAMERA_ANGLE;
+
+    //finds the distance the robot is horizontally from the target, if possible.
+    distanceFromTarget = Double.MAX_VALUE;
+    try {
+      distanceFromTarget = TRIANGLE_HEIGHT / Math.tan(triagleAngle);
+    } catch (Exception e) {
+      System.out.println(e);
+    }
+
+    //turns led on camera on when the A button is down
+    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+
+    //if the a button is down
+    if(stick.getRawButton(A_BUTTON)) {
+      
+      //if the robot is within the range of th target
+      if (distanceFromTarget < MAXINUM_DISTANCE) {
+        //calculate turning
+        
+        // rotate the robot towards the target if horizontal angle is greater than the horizontal angle threshold on either side of the target
+        horizontalSpeed = rotate(horizontalAngle);
+      }
+    }
+
+    // Cubing values to create smoother function
+    stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
+    stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
+
+    // limit the speed of the robot
+    stickX *= 0.2;
+    stickY *= 0.2;
+
+    // manual drive controls
+    if(Math.abs(stickX) > JOYSTICK_DEADBAND) {
+      distanceSpeed = stickX;
+    }
+    if(Math.abs(stickY) > JOYSTICK_DEADBAND) {
+      horizontalSpeed = stickY;
+    }
+
+    // left and right speeds of the drivetrain
+    leftMovement = distanceSpeed + horizontalSpeed;
+    rightMovement = distanceSpeed - horizontalSpeed;
+
+    // run the robot based on the left and right speeds of the drive train
+    runAt(-leftMovement, rightMovement);
+  }
+
+ 
+  @Override
+  public void autonomousInit() {
+    
+  }
+
+
+  @Override
+  public void autonomousPeriodic() {
+    
+  }
+
+
+  @Override
+  public void teleopPeriodic() {
+  }
+
+
+  @Override
+  public void testPeriodic() {
+  }
+
+  private void runAt(double leftSpeed, double rightSpeed) {      
+    leftMotor.set(leftSpeed);
+    rightMotor.set(rightSpeed);
+  }
+}
