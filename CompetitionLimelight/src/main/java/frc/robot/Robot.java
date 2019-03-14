@@ -19,21 +19,31 @@ public class Robot extends TimedRobot {
   private final int RIGHT_X_AXIS = 4;                 //the right horizontal axis of the joystick
   private final double JOYSTICK_DEADBAND = 0.000124;  //deadband of the joystick, 
   private final double DEFAULT_LIMELIGHT_VALUE = 0.1234;  // default value that the limelight will return if no targets are found
+  private final double DEFAULT_HORIZONTAL_SPEED = 0.02; // default speed for robot rotation
+  private final double HORIZONTAL_ANGLE_DEADBAND = 0.4; 
 
-  private static double distanceFromTarget = 0;  //the distance the camera is from the target, horizontally
-  private static double verticalAngle = 0;       //ty of the camera. the angle between the camera perpendicularly and the target
-  private static double horizontalAngle = 0;     //t of the camera
-  private static double triagleAngle = 0;        //the angle of the ty plus the angle of the camera
+  private static double distanceFromTarget = 0.0;  //the distance the camera is from the target, horizontally
+  private static double verticalAngle = 0.0;       //ty of the camera. the angle between the camera perpendicularly and the target
+  private static double horizontalAngle = 0.0;     //t of the camera
 
   // values of the left joystick's x-axis and the right joystick's y-axis
-  private static double stickX = 0;
-  private static double stickY = 0;
+  private static double stickX = 0.0;
+  private static double stickY = 0.0;
+
+  //Movement of each side of wheels
+  private static double leftMovement;
+  private static double rightMovement;
+
+  // Stores the previous horizontal angle
+  private static double prevHorizAngle = 0.0;
 
   // speed of the robot in the left and right directions
-  private static double horizontalSpeed = 0;
+  private static double horizontalSpeed = 0.0;
+  private static double leftHorizSpeed = 0.0;
+  private static double rightHorizSpeed = 0.0;
 
   // speed of the robot in the forward and backward directions
-  private static double distanceSpeed = 0;
+  private static double distanceSpeed = 0.0;
 
   //network table of the limelight, stores all the values the limelight has
   NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
@@ -72,37 +82,33 @@ public class Robot extends TimedRobot {
     // reset the horizontal and distance speeds every time the code runs
     // this will prevent previous leftover values from moving the motors
     horizontalSpeed = 0;
-    distanceSpeed = 0;
+    leftHorizSpeed = 0.0;
+    rightHorizSpeed = 0.0;
 
-    //get ty and tx
+    //get tx
     NetworkTableEntry tx = limelightTable.getEntry("tx");
-    NetworkTableEntry ty = limelightTable.getEntry("ty");
     double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
-    double verticalAngle = ty.getDouble(DEFAULT_LIMELIGHT_VALUE);
-
-    //create the angle of the triangle, used to calculate
-    triagleAngle = verticalAngle + CAMERA_ANGLE;
-
-    //finds the distance the robot is horizontally from the target, if possible.
-    distanceFromTarget = Double.MAX_VALUE;
-    try {
-      distanceFromTarget = TRIANGLE_HEIGHT / Math.tan(triagleAngle);
-    } catch (Exception e) {
-      System.out.println(e);
-    }
 
     //turns led on camera on when the A button is down
     limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
 
+    if(horizontalAngle != DEFAULT_LIMELIGHT_VALUE)
+    {
+      prevHorizAngle = horizontalAngle;
+    }
+
     //if the a button is down
     if(stick.getRawButton(A_BUTTON)) {
-      
-      //if the robot is within the range of th target
-      if (distanceFromTarget < MAXINUM_DISTANCE) {
-        //calculate turning
-        
-        // rotate the robot towards the target if horizontal angle is greater than the horizontal angle threshold on either side of the target
-        horizontalSpeed = rotate(horizontalAngle);
+
+      //This is for rotating it right
+      //  Otherwise rotate left
+      if(prevHorizAngle >= HORIZONTAL_ANGLE_DEADBAND)
+      {
+        rightHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
+      }
+      else if (prevHorizAngle <= -HORIZONTAL_ANGLE_DEADBAND)
+      {
+        leftHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
       }
     }
 
@@ -110,7 +116,7 @@ public class Robot extends TimedRobot {
     stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
     stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
 
-    // limit the speed of the robot
+    // Stop robot from turning too fast
     stickX *= 0.2;
     stickY *= 0.2;
 
@@ -123,8 +129,8 @@ public class Robot extends TimedRobot {
     }
 
     // left and right speeds of the drivetrain
-    leftMovement = distanceSpeed + horizontalSpeed;
-    rightMovement = distanceSpeed - horizontalSpeed;
+    leftMovement = (distanceSpeed + horizontalSpeed + leftHorizSpeed) * (horizontalAngle / 27);
+    rightMovement = (distanceSpeed - horizontalSpeed - rightHorizSpeed) * (horizontalAngle / 27);
 
     // run the robot based on the left and right speeds of the drive train
     runAt(-leftMovement, rightMovement);
