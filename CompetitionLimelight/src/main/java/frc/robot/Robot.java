@@ -19,8 +19,8 @@ public class Robot extends TimedRobot {
   private final int RIGHT_X_AXIS = 4;                 //the right horizontal axis of the joystick
   private final double JOYSTICK_DEADBAND = 0.000124;  //deadband of the joystick, 
   private final double DEFAULT_LIMELIGHT_VALUE = 0.1234;  // default value that the limelight will return if no targets are found
-  private final double DEFAULT_HORIZONTAL_SPEED = 0.02; // default speed for robot rotation
-  private final double HORIZONTAL_ANGLE_DEADBAND = 0.4; 
+  private final double DEFAULT_HORIZONTAL_SPEED = 0.1; // default speed for robot rotation
+  private final double HORIZONTAL_ANGLE_DEADBAND = 0.2; 
 
   private static double distanceFromTarget = 0.0;  //the distance the camera is from the target, horizontally
   private static double verticalAngle = 0.0;       //ty of the camera. the angle between the camera perpendicularly and the target
@@ -79,61 +79,6 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
 
-    // reset the horizontal and distance speeds every time the code runs
-    // this will prevent previous leftover values from moving the motors
-    horizontalSpeed = 0;
-    leftHorizSpeed = 0.0;
-    rightHorizSpeed = 0.0;
-
-    //get tx
-    NetworkTableEntry tx = limelightTable.getEntry("tx");
-    double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
-
-    //turns led on camera on when the A button is down
-    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
-
-    if(horizontalAngle != DEFAULT_LIMELIGHT_VALUE)
-    {
-      prevHorizAngle = horizontalAngle;
-    }
-
-    //if the a button is down
-    if(stick.getRawButton(A_BUTTON)) {
-
-      //This is for rotating it right
-      //  Otherwise rotate left
-      if(prevHorizAngle >= HORIZONTAL_ANGLE_DEADBAND)
-      {
-        rightHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
-      }
-      else if (prevHorizAngle <= -HORIZONTAL_ANGLE_DEADBAND)
-      {
-        leftHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
-      }
-    }
-
-    // Cubing values to create smoother function
-    stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
-    stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
-
-    // Stop robot from turning too fast
-    stickX *= 0.2;
-    stickY *= 0.2;
-
-    // manual drive controls
-    if(Math.abs(stickX) > JOYSTICK_DEADBAND) {
-      distanceSpeed = stickX;
-    }
-    if(Math.abs(stickY) > JOYSTICK_DEADBAND) {
-      horizontalSpeed = stickY;
-    }
-
-    // left and right speeds of the drivetrain
-    leftMovement = (distanceSpeed + horizontalSpeed + leftHorizSpeed) * (horizontalAngle / 27);
-    rightMovement = (distanceSpeed - horizontalSpeed - rightHorizSpeed) * (horizontalAngle / 27);
-
-    // run the robot based on the left and right speeds of the drive train
-    runAt(-leftMovement, rightMovement);
   }
 
  
@@ -151,6 +96,71 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    
+    // reset the horizontal and distance speeds every time the code runs
+    // this will prevent previous leftover values from moving the motors
+    distanceSpeed = 0.0;
+    horizontalSpeed = 0.0;
+    leftHorizSpeed = 0.0;
+    rightHorizSpeed = 0.0;
+
+    //get tx
+    NetworkTableEntry tx = limelightTable.getEntry("tx");
+    double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
+    System.out.println("HORIZONTAL : " + horizontalAngle);
+      
+    //turns led on camera on when the A button is down
+    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+
+    if(horizontalAngle != DEFAULT_LIMELIGHT_VALUE)
+    {
+      System.out.println("GOT HERE");
+      prevHorizAngle = horizontalAngle;
+    }
+
+    //if the a button is down
+    if(stick.getRawButton(A_BUTTON)) {
+      System.out.println("PrevAngle: " + prevHorizAngle);
+
+      //This is for rotating it right
+      //  Otherwise rotate left
+      if(prevHorizAngle >= HORIZONTAL_ANGLE_DEADBAND)
+      {
+        rightHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
+        System.out.println("prevHorizAngle: " + prevHorizAngle + " going left");
+      }
+      else if (prevHorizAngle <= -HORIZONTAL_ANGLE_DEADBAND)
+      {
+        leftHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
+        System.out.println("prevHorizAngle: " + prevHorizAngle + " going left");
+      }
+    }
+
+    // Cubing values to create smoother function
+    stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
+    stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
+
+    // Stop robot from turning too fast
+    stickX *= 0.2;
+    stickY *= 0.2;
+
+    // manual drive controls
+    if(Math.abs(stickX) > JOYSTICK_DEADBAND) {
+      distanceSpeed = stickX;
+      System.out.println("Moving X");
+    }
+    if(Math.abs(stickY) > JOYSTICK_DEADBAND) {
+      horizontalSpeed = stickY;
+    }
+
+    // left and right speeds of the drivetrain
+    leftMovement = (distanceSpeed + horizontalSpeed + leftHorizSpeed);// * (horizontalAngle / 27);
+    rightMovement = (distanceSpeed - horizontalSpeed - rightHorizSpeed);// * (horizontalAngle / 27);
+
+    System.out.println("Left: " + leftMovement + " = DIstance Speed: " + distanceSpeed + " + leftHorizSpeed: " + leftHorizSpeed);
+    System.out.println("Right: " + rightMovement + " = DIstance Speed: " + distanceSpeed + " + rightHorizSpeed: " + rightHorizSpeed);
+    // run the robot based on the left and right speeds of the drive train
+    runAt(-leftMovement, rightMovement);
   }
 
 
