@@ -110,7 +110,7 @@ public class Robot extends TimedRobot {
     System.out.println("HORIZONTAL : " + horizontalAngle);
       
     //turns led on camera on when the A button is down
-    limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(A_BUTTON) ? 1 : 0)));
+    limelightTable.getEntry("ledMode").setNumber(3);
 
     if(horizontalAngle != DEFAULT_LIMELIGHT_VALUE)
     {
@@ -126,12 +126,12 @@ public class Robot extends TimedRobot {
       //  Otherwise rotate left
       if(prevHorizAngle >= HORIZONTAL_ANGLE_DEADBAND)
       {
-        rightHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
+        leftHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
         System.out.println("prevHorizAngle: " + prevHorizAngle + " going left");
       }
       else if (prevHorizAngle <= -HORIZONTAL_ANGLE_DEADBAND)
       {
-        leftHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
+        rightHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
         System.out.println("prevHorizAngle: " + prevHorizAngle + " going left");
       }
     }
