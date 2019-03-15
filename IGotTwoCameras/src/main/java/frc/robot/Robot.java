@@ -7,8 +7,12 @@
 
 package frc.robot;
 
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -27,8 +31,27 @@ public class Robot extends TimedRobot {
   UsbCamera camera; 
   UsbCamera camera2;
 
+  double stickX;
+  double stickY;
+
+  CANSparkMax leftMotor = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax leftFollow1 = new CANSparkMax(2, MotorType.kBrushless);
+  CANSparkMax leftFollow2 = new CANSparkMax(3, MotorType.kBrushless);
+  CANSparkMax rightMotor = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax rightFollow1 = new CANSparkMax(5, MotorType.kBrushless);
+  CANSparkMax rightFollow2 = new CANSparkMax(6, MotorType.kBrushless);
+
+  Joystick stick = new Joystick(0);
+
   @Override
   public void robotInit() {
+
+
+    leftFollow1.follow(leftMotor);
+    rightFollow1.follow(rightMotor);
+    leftFollow2.follow(leftMotor);
+    rightFollow2.follow(rightMotor);
+
 
     new Thread(() -> {
       // Instantiate the USB cameras and begin capturing their video streams
@@ -36,11 +59,16 @@ public class Robot extends TimedRobot {
       camera2 = CameraServer.getInstance().startAutomaticCapture(1);
       // set the cameras' reolutions and FPS
 
-			camera.setResolution(480, 320);
-      camera.setFPS(17);
+      SmartDashboard.putNumber("Width Camera 1", 320);
+      SmartDashboard.putNumber("Height Camera 1", 320);
+      SmartDashboard.putNumber("Width Camera 2", 120);
+      SmartDashboard.putNumber("Height Camera 2", 120);
 
-			camera2.setResolution(480, 320);
-      camera2.setFPS(17);
+			camera.setResolution(160, 120);
+      camera.setFPS(30);
+
+			camera2.setResolution(160, 120);
+      camera2.setFPS(30);
 
     }).start();
     
@@ -61,8 +89,44 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    camera.setResolution((int)SmartDashboard.getNumber("Width Camera 1", 480),(int) SmartDashboard.getNumber("Height Camera 1", 320));
-    camera2.setResolution((int)SmartDashboard.getNumber("Width Camera 2", 480),(int) SmartDashboard.getNumber("Height Camera 2", 320));
+    //camera.setResolution((int)SmartDashboard.getNumber("Width Camera 1", 480),(int) SmartDashboard.getNumber("Height Camera 1", 320));
+    //camera2.setResolution((int)SmartDashboard.getNumber("Width Camera 2", 480),(int) SmartDashboard.getNumber("Height Camera 2", 320));
+    
+    
+
+    stickX = -Math.pow(stick.getRawAxis(1), 3);
+    stickY = Math.pow(stick.getRawAxis(4), 3);
+
+
+
+    // manual drive controls
+
+    if(Math.abs(stickX) < 0.000124) {
+
+      stickX =0;
+
+    }
+
+    if(Math.abs(stickY) < 0.000124) {
+
+      stickY = 0;
+
+    }
+
+
+
+    // left and right speeds of the drivetrain
+
+    stickX = stickX + stickY;
+
+    stickY = stickX - stickY;
+
+
+
+    // run the robot based on the left and right speeds of the drive train
+
+    leftMotor.set(-stickX);
+    rightMotor.set(stickY);
 
   }
 
