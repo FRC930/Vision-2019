@@ -18,8 +18,8 @@ public class Robot extends TimedRobot {
   private final int LEFT_Y_AXIS = 1;                  //the left vertical axis of the joystick
   private final int RIGHT_X_AXIS = 4;                 //the right horizontal axis of the joystick
   private final double JOYSTICK_DEADBAND = 0.000124;  //deadband of the joystick, 
-  private final double DEFAULT_LIMELIGHT_VALUE = 0.1234;  // default value that the limelight will return if no targets are found
-  private final double DEFAULT_HORIZONTAL_SPEED = 0.1; // default speed for robot rotation
+  private final double DEFAULT_LIMELIGHT_VALUE = 0.01234;  // default value that the limelight will return if no targets are found
+  private final double DEFAULT_HORIZONTAL_SPEED = 0.25; // default speed for robot rotation
   private final double HORIZONTAL_ANGLE_DEADBAND = 0.2; 
 
   private static double distanceFromTarget = 0.0;  //the distance the camera is from the target, horizontally
@@ -106,43 +106,50 @@ public class Robot extends TimedRobot {
 
     //get tx
     NetworkTableEntry tx = limelightTable.getEntry("tx");
+    NetworkTableEntry tv = limelightTable.getEntry("tv");
     double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
+    double isTargetVisible = tv.getDouble(-1.0);
     System.out.println("HORIZONTAL : " + horizontalAngle);
+    System.out.println("Is target visible: " + isTargetVisible);
       
     //turns led on camera on when the A button is down
     limelightTable.getEntry("ledMode").setNumber(3);
-
-    if(horizontalAngle != DEFAULT_LIMELIGHT_VALUE)
-    {
-      System.out.println("GOT HERE");
-      prevHorizAngle = horizontalAngle;
-    }
-
-    //if the a button is down
-    if(stick.getRawButton(A_BUTTON)) {
-      System.out.println("PrevAngle: " + prevHorizAngle);
-
-      //This is for rotating it right
-      //  Otherwise rotate left
-      if(prevHorizAngle >= HORIZONTAL_ANGLE_DEADBAND)
-      {
-        leftHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
-        System.out.println("prevHorizAngle: " + prevHorizAngle + " going left");
-      }
-      else if (prevHorizAngle <= -HORIZONTAL_ANGLE_DEADBAND)
-      {
-        rightHorizSpeed = DEFAULT_HORIZONTAL_SPEED;
-        System.out.println("prevHorizAngle: " + prevHorizAngle + " going left");
-      }
-    }
 
     // Cubing values to create smoother function
     stickX = -Math.pow(stick.getRawAxis(LEFT_Y_AXIS), 3);
     stickY = Math.pow(stick.getRawAxis(RIGHT_X_AXIS), 3);
 
     // Stop robot from turning too fast
-    stickX *= 0.2;
-    stickY *= 0.2;
+
+
+    // Checks if a target is in view
+    if(isTargetVisible == 1)
+    {
+      // If target is in view, the previous speed becomes the current horizontal speed
+      // Previous angle holds the last angle recieved after losing the target
+      prevHorizAngle = horizontalAngle;
+    }
+
+    // Checks if the a button is down
+    if(stick.getRawButton(A_BUTTON)) {
+      
+      // Checks to see if the current horizontal angle (tx) is outside the deadband
+      if(Math.abs(horizontalAngle) > .5)
+
+        // Makes the horizontal speed adjust in proportion to the current horizontal angle
+        // Divides current horizontal angle by the maximum angle possible 
+        // Multiplies the angle by the default horizontal speed
+        horizontalSpeed = (horizontalAngle / 27.0) *  DEFAULT_HORIZONTAL_SPEED;
+    
+      // This is for rotating it right 
+      // Otherwise rotate left
+      if(isTargetVisible == 0) {
+        if(Math.abs(prevHorizAngle) > HORIZONTAL_ANGLE_DEADBAND + 0.8)
+        {
+          horizontalSpeed = (prevHorizAngle / 27.0) * DEFAULT_HORIZONTAL_SPEED;
+        }
+      }
+    }
 
     // manual drive controls
     if(Math.abs(stickX) > JOYSTICK_DEADBAND) {
@@ -154,8 +161,8 @@ public class Robot extends TimedRobot {
     }
 
     // left and right speeds of the drivetrain
-    leftMovement = (distanceSpeed + horizontalSpeed + leftHorizSpeed);// * (horizontalAngle / 27);
-    rightMovement = (distanceSpeed - horizontalSpeed - rightHorizSpeed);// * (horizontalAngle / 27);
+    leftMovement = (distanceSpeed + horizontalSpeed);// + leftHorizSpeed;// * (horizontalAngle / 27);
+    rightMovement = (distanceSpeed - horizontalSpeed);// - rightHorizSpeed;// * (horizontalAngle / 27);
 
     System.out.println("Left: " + leftMovement + " = DIstance Speed: " + distanceSpeed + " + leftHorizSpeed: " + leftHorizSpeed);
     System.out.println("Right: " + rightMovement + " = DIstance Speed: " + distanceSpeed + " + rightHorizSpeed: " + rightHorizSpeed);
