@@ -104,6 +104,27 @@ public class Robot extends TimedRobot {
     leftHorizSpeed = 0.0;
     rightHorizSpeed = 0.0;
 
+    //Test code for browning out the robot 
+    if(stick.getRawButton(5) == true)
+    {
+      leftMotor.setSmartCurrentLimit(99999);
+      leftFollow1.setSmartCurrentLimit(99999);
+      leftFollow2.setSmartCurrentLimit(99999);
+      rightMotor.setSmartCurrentLimit(99999);
+      rightFollow1.setSmartCurrentLimit(99999);
+      rightFollow2.setSmartCurrentLimit(99999);
+    }
+    else
+    {
+      leftMotor.setSmartCurrentLimit(30);
+      leftFollow1.setSmartCurrentLimit(30);
+      leftFollow2.setSmartCurrentLimit(30);
+      rightMotor.setSmartCurrentLimit(30);
+      rightFollow1.setSmartCurrentLimit(30);
+      rightFollow2.setSmartCurrentLimit(30);      
+    }
+
+
     //get tx
     NetworkTableEntry tx = limelightTable.getEntry("tx");
     NetworkTableEntry tv = limelightTable.getEntry("tv");
